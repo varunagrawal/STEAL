@@ -12,3 +12,84 @@
   Volume                   = {76}
 }
 
+
+@InProceedings{Rana20corl,
+    title = 	 {Learning Reactive Motion Policies in Multiple Task Spaces from Human Demonstrations},
+    author =       {Rana, M. Asif and Li, Anqi and Ravichandar, Harish and Mukadam, Mustafa and Chernova, Sonia and Fox, Dieter and Boots, Byron and Ratliff, Nathan},
+    booktitle = 	 {Proceedings of the Conference on Robot Learning},
+    pages = 	 {1457--1468},
+    year = 	 {2020},
+    editor = 	 {Kaelbling, Leslie Pack and Kragic, Danica and Sugiura, Komei},
+    volume = 	 {100},
+    series = 	 {Proceedings of Machine Learning Research},
+    month = 	 {30 Oct--01 Nov},
+    publisher =    {PMLR},
+    pdf = 	 {http://proceedings.mlr.press/v100/rana20a/rana20a.pdf},
+    url = 	 {https://proceedings.mlr.press/v100/rana20a.html},
+    abstract = 	 {Complex manipulation tasks often require non-trivial and coordinated movements of different parts of a robot. In this work, we address the challenges associated with learning and reproducing the skills required to execute such complex tasks. Specifically, we decompose a task into multiple subtasks and learn to reproduce the subtasks by learning stable policies from demonstrations. By leveraging the RMPflow framework for motion generation, our approach finds a stable global policy in the configuration space that enables simultaneous execution of various learned subtasks. The resulting global policy is a weighted combination of the learned policies such that the motions are coordinated and feasible under the robot’s kinematic and environmental constraints. We demonstrate the necessity and efficacy of the proposed approach in the context of multiple constrained manipulation tasks performed by a Franka Emika robot.}
+}
+
+@INPROCEEDINGS{Dong18icra,  author={Dong, Jing and Mukadam, Mustafa and Boots, Byron and Dellaert, Frank},  booktitle={2018 IEEE International Conference on Robotics and Automation (ICRA)},   title={Sparse Gaussian Processes on Matrix Lie Groups: A Unified Framework for Optimizing Continuous-Time Trajectories},   year={2018},  volume={},  number={},  pages={6497-6504},  doi={10.1109/ICRA.2018.8461077}}
+
+@inproceedings{Barfoot14rss,
+    title={Batch Continuous-Time Trajectory Estimation as Exactly Sparse Gaussian Process Regression},
+    author={Tim D. Barfoot and Chi Hay Tong and Simo S{\"a}rkk{\"a}},
+    booktitle={Robotics: Science and Systems},
+    year={2014}
+}
+
+@Inbook{Schaal06amam,
+    author="Schaal, Stefan",
+    editor="Kimura, Hiroshi
+    and Tsuchiya, Kazuo
+    and Ishiguro, Akio
+    and Witte, Hartmut",
+    title="Dynamic Movement Primitives -A Framework for Motor Control in Humans and Humanoid Robotics",
+    bookTitle="Adaptive Motion of Animals and Machines",
+    year="2006",
+    publisher="Springer Tokyo",
+    address="Tokyo",
+    pages="261--280",
+    abstract="Given the continuous stream of movements that biological systems exhibit in their daily activities, an account for such versatility and creativity has to assume that movement sequences consist of segments, executed either in sequence or with partial or complete overlap. Therefore, a fundamental question that has pervaded research in motor control both in artificial and biological systems revolves around identifying movement primitives (a.k.a. units of actions, basis behaviors, motor schemas, etc.). What are the fundamental building blocks that are strung together, adapted to, and created for ever new behaviors? This paper summarizes results that led to the hypothesis of Dynamic Movement Primitives (DMP). DMPs are units of action that are formalized as stable nonlinear attractor systems. They are useful for autonomous robotics as they are highly flexible in creating complex rhythmic (e.g., locomotion) and discrete (e.g., a tennis swing) behaviors that can quickly be adapted to the inevitable perturbations of a dynamically changing, stochastic environment. Moreover, DMPs provide a formal framework that also lends itself to investigations in computational neuroscience. A recent finding that allows creating DMPs with the help of well-understood statistical learning methods has elevated DMPs from a more heuristic to a principled modeling approach. Theoretical insights, evaluations on a humanoid robot, and behavioral and brain imaging data will serve to outline the framework of DMPs for a general approach to motor control in robotics and biology.",
+    isbn="978-4-431-31381-6",
+    doi="10.1007/4-431-31381-8_23",
+    url="https://doi.org/10.1007/4-431-31381-8_23"
+}
+
+@article{KhansariZadeh17ar,
+    author = {Khansari-Zadeh, Seyed Mohammad and Khatib, Oussama},
+    title = {Learning Potential Functions from Human Demonstrations with Encapsulated Dynamic and Compliant Behaviors},
+    year = {2017},
+    issue_date = {January 2017},
+    publisher = {Kluwer Academic Publishers},
+    address = {USA},
+    volume = {41},
+    number = {1},
+    issn = {0929-5593},
+    url = {https://doi.org/10.1007/s10514-015-9528-y},
+    doi = {10.1007/s10514-015-9528-y},
+    abstract = {We consider the problem of devising a unified control policy capable of regulating both the robot motion and its physical interaction with the environment. We formulate this control policy by a non-parametric potential function and a dissipative field, which both can be learned from human demonstrations. We show that the robot motion and its stiffness behaviors can be encapsulated by the potential function's gradient and curvature, respectively. The dissipative field can also be used to model desired damping behavior throughout the motion, hence generating motions that follows the same velocity profile as the demonstrations. The proposed controller can be realized as a unification approach between "realtime motion generation" and "variable impedance control", with the advantages that it has guaranteed stability as well as does not rely on following a reference trajectory. Our approach, called unified motion and variable impedance control (UMIC), is completely time-invariant and can be learned from a few demonstrations via solving two (convex) constrained quadratic optimization problems. We validate UMIC on a library of 30 human handwriting motions and on a set of experiments on 7-DoF KUKA light weight robot.},
+    journal = {Auton. Robots},
+    month = {jan},
+    pages = {45–69},
+    numpages = {25},
+    keywords = {Imitation learning, Variable impedance control, Compliant control, Potential field, Motion primitives, Motion control, Physical interaction control, Robot learning}
+}
+
+@misc{Ratliff18arxiv,
+    doi = {10.48550/ARXIV.1801.02854},
+    url = {https://arxiv.org/abs/1801.02854},
+    author = {Ratliff, Nathan D. and Issac, Jan and Kappler, Daniel and Birchfield, Stan and Fox, Dieter},
+    keywords = {Robotics (cs.RO), FOS: Computer and information sciences, FOS: Computer and information sciences},
+    title = {Riemannian Motion Policies},
+    publisher = {arXiv},
+    year = {2018},
+    copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+@article{Erickson20icra,
+    title={Assistive Gym: A Physics Simulation Framework for Assistive Robotics},
+    author={Erickson, Zackory and Gangaram, Vamsee and Kapusta, Ariel and Liu, C. Karen and Kemp, Charles C.},
+    journal={IEEE International Conference on Robotics and Automation (ICRA)},
+    year={2020}
+}
