@@ -4,7 +4,6 @@ Simultaneous Trajectory Estimation and Learning
 ## Datasets
 
 - [LASA Dataset](https://cs.stanford.edu/people/khansari/download.html)
-- [LASA Python API](https://github.com/justagist/pyLasaDataset)
 
 #### Resources
 
