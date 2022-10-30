@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "steal"
+version = "1.00"
+description = "Simultaneous Trajectory Estimation And Learning"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.23.4"
+pyLasaDataset = "^0.1.1"
+torch = "^1.13.0"
+matplotlib = "^3.6.1"
+fastdtw = "^0.3.4"
+tensorboardX = "^2.5.1"
+scipy = "^1.9.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
