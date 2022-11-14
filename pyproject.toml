@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "steal"
-version = "1.00"
+version = "1.0.0"
 description = "Simultaneous Trajectory Estimation And Learning"
-authors = ["Your Name <you@example.com>"]
+authors = ["Yuri Ahn <yahn41@gatech.edu>", "Shivika Singh <ssingh794@gatech.edu>", "Varun Agrawal <varunagrawal@gatech.edu>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
