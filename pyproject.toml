@@ -27,3 +27,11 @@ yapf = "^0.32.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-s -v"
+testpaths = [
+    "tests",
+    "integration",
+]
