@@ -3,8 +3,9 @@
 %\usepackage{corl_2022} % Use this for the initial submission.
 %\usepackage[final]{corl_2022} % Uncomment for the camera-ready ``final'' version.
 \usepackage[preprint]{corl_2022} % Uncomment for pre-prints (e.g., arxiv); This is like ``final'', but will remove the CORL footnote.
+\usepackage{graphicx}
 
-\title{STEAL: Simultaneous Trajectory Estimation And Learning}
+\title{STEAL: Simultaneous Trajectory Estimation And Learning \vspace{-1.5em}}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -48,6 +49,7 @@
   %% \texttt{email} \\
 }
 
+\setlength{\marginparwidth}{0pt}
 
 \begin{document}
 \maketitle
@@ -55,70 +57,81 @@
 \vspace{-3.5em}
 \section{Problem}
 
-2) What is the problem you are trying to solve -- not how you are trying to solve it, but the issue you want to address. 
+% We wish to learn from demonstrations in nonlinear, non-Euclidean spaces since our world is inherently nonlinear, while also accounting for suboptimality and personalization.
 
-\begin{itemize}
-    \item Further explanation of what properties are useful for our application.
-    \item In order for robots to be more accessible to non-experts, they should be able to learn from sub-optimal demonstrations. We propose our method of handling sub-optimality by extracting the best nominal trajectory for learning the policy. (*include details on controller and policy*)
-
-\end{itemize} 
+In order for robots to be more accessible to non-experts, they should be able to learn from multiple, potentially sub-optimal demonstrations, instead of relying on a single nominal expert trajectory. This learning should also be compatible with our inherently nonlinear world.  We propose a method for handling multiple nonlinear trajectories while accounting for sub-optimality and personalization.
 
 %===============================================================================
 \vspace{-1em}
 \section{Project Motivation}
 
-3) Why the existing literature isn't sufficient. For example, you want to reduce the sample complexity of LfD algorithms because current approaches impose too much workload on users.
+Existing works in LfD don't explicitly consider the nonlinear, non-Euclidean nature of trajectories and our physical world. Even when they do~\cite{Rana20corl}, they only operate on a single expert trajectory (obtained e.g. via Dynamic Time Warping), losing personalization and robustness to sub-optimality.
+This motivates our use of RMPFlow as the motion policy generator since it can handle generic non-Euclidean spaces (or Riemannian Manifolds).
 
-\begin{itemize}
-    \item  The current method of finding a nominal trajectory in RMPFlow is Dynamic Time Warping, but the assumption is that the trajectories are all optimal. However, we would like to make our system robust to sub-optimal demonstrations.
-    \item Trying to use LfD in a way that is more generic and non-linear space using sub-optimal trajectories and personalization.
-    \item Other work does not account for updating demonstrations nor handle sub-optimality
-    \item Gaussian Process Regression is computationally efficient to model a set of trajectories. (can define covariance function with NNs, interpretability, non-parameterized, don't need a lot of data/trajectories)
-    
-\end{itemize}
+% The current approach used by RMPFlow requires the use of a single, nominal trajectory without mechanisms to handle sub-optimality. Dynamic Time Warping is used to find the nominal trajectory which in turn fully governs the learning dynamics. However, we would like to make our system robust to sub-optimal demonstrations.
+
+Gaussian Process Regression has a number of desirable properties which motivates its use in this project. It is computationally efficient, works extremely well in the low-data regime, and can model continuous-time signals. Moreover, by defining appropriate covariance functions (either by hand or by learning it with a deep network), we automatically gain interpretability which is useful for non-expert debugging. This leads to good performance with low cognitive load for non-expert users.
 
 %===============================================================================
 \section{Approach}
-4) How your approach will work (or what your experiment will do to answer a novel question).
+% \textit{How your approach will work (or what your experiment will do to answer a novel question)?}
 
-\begin{itemize}
-    \item 
-\end{itemize}
+To be able to operate in nonlinear, non-Euclidean task spaces, we use RMPFlow for learning a controller $\pi(t; \theta)$ from demonstrations. This also grants us theoretical guarantees about safety, stability, local reactivity, and extensibility, all of which are useful in Human-Robot Interaction, while being agnostic to the robot and task type.
+
+To incorporate multiple trajectories and be robust to sub-optimality, we leverage the use of Gaussian Processes (GPs)~\cite{Mukadam18ijrr,Bhardwaj20icra,vanWaveren22manuscript} which are a common representation for continuous-time robot trajectories. GPs use Bayesian inference to incorporate multiple trajectories as samples of a mean trajectory function, and the covariance matrix $\mathcal{K}$ helps define properties of the trajectories. The choice of $\mathcal{K}$ is a hyperparameter which allows us to incorporate personalization metrics.
 
 
 %===============================================================================
 
 \section{Project Update}
 
-5) What progress you have made since your proposal.
+% \textit{What progress you have made since your proposal?}
+
 \begin{itemize}
-    \item baseline RMP working for simple drawing task
-    \item GP regression on simple drawing task
+    \item Met multiple times in order to read and learn about RMPFlow and Gaussian Processes (common \& state-of-the-art techniques which are beyond the scope of the class).
+    \item Baseline RMPFlow model working for simple LASA~\cite{Khansari-Zadeh11tro} dataset drawing task.
+    \item GP regression (using GPyTorch) on LASA drawing task.
 \end{itemize}
 
 %===============================================================================
 
 \section{Future Plan}
 
-6) What is your plan moving forward (including a Gantt chart)
+% \textit{What is your plan moving forward (including a Gantt chart)?}
 
 \begin{itemize}
-    \item integrate the two: GP and RMPFlow
-    \item extend to larger tasks 
+    \item Integrate the Gaussian Process representation with RMPFlow.
+    \item Demonstrate end-to-end results on the LASA dataset.
+    \item Collect data from Assistive Gym~\cite{Erickson20icra}.
+    \item Demonstrate results on Assistive Gym dataset.
+    \item Prepare 3 Ps: plots, presentation, paper.
 \end{itemize}
+
+\includegraphics[width=\textwidth,bb=0 0 1000 220]{images/gantt_chart.png}
 
 %===============================================================================
 
 \section{Request for Feedback}
 
-7) What are the major issues/questions you need my help with.
+% 7) What are the major issues/questions you need my help with.
+\begin{itemize}
+    \item How do we present advanced topics such as RMPFlow and GPs better?
+    \item What can be done additionally to make this project publication quality?
+\end{itemize}
 %===============================================================================
+
+\section{Risks}
+\begin{itemize}
+    \item Time requirements to finish the project.
+    \item Demonstrating the theoretical properties of our approach in practice.
+    \item Potential unforeseen issues (e.g. Varun's visa situation).
+\end{itemize}
 
 % \section{Timeline}
 % \begin{itemize}
-%     \item Week 1 Setup all the necessary software.
-%     \item Week 2 Data collection for push task and Assistive Gym task.
-%     \item Week 3 Project design and implementation.
+%     \item Week 1 Setup all the necessary software. - Done!
+%     \item Week 2 Data collection for push task and Assistive Gym task. - Kinda done since we got the LASA dataset. Assistive Gym is missing.
+%     \item Week 3 Project design and implementation. - Done and implementationin progress.
 %     \item Week 4-6 Evaluation and debugging.
 %     \item Week 7 Report and presentation creation.
 % \end{itemize}

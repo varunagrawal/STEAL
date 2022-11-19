@@ -348,7 +348,7 @@
     % added the following to fix this problem               (MK)
     \long\def\@makefntext##1{%
       \parindent 1em\noindent
-      \hbox to 1.8em{\hss $\m@th ^{\@thefnmark}$}##1
+      \hbox to 1.0em{\hss $\m@th ^{\@thefnmark}$}##1
     }
     \thispagestyle{empty}
     \@maketitle
@@ -362,11 +362,11 @@
 % rules for title box at top of first page
 \newcommand{\@toptitlebar}{
   \hrule height 4\p@
-  \vskip 0.25in
+  \vskip 0.05in
   \vskip -\parskip%
 }
 \newcommand{\@bottomtitlebar}{
-  \vskip 0.29in
+  \vskip 0.09in
   \vskip -\parskip
   \hrule height 1\p@
   \vskip 0.09in%
@@ -397,10 +397,10 @@
   \vbox{%
     \hsize\textwidth
     \linewidth\hsize
-    \vskip 0.1in
+    \vskip 0.01in
 %     \@toptitlebar
     \centering
-    {\LARGE\bf \@title\par}
+    {\large\bf \@title\par}
 %     \@bottomtitlebar
     \if@conferencefinal
       \def\And{%
