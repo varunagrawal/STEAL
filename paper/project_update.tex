@@ -1,0 +1,135 @@
+\documentclass{article}
+
+%\usepackage{corl_2022} % Use this for the initial submission.
+%\usepackage[final]{corl_2022} % Uncomment for the camera-ready ``final'' version.
+\usepackage[preprint]{corl_2022} % Uncomment for pre-prints (e.g., arxiv); This is like ``final'', but will remove the CORL footnote.
+
+\title{STEAL: Simultaneous Trajectory Estimation And Learning}
+
+% The \author macro works with any number of authors. There are two
+% commands used to separate the names and addresses of multiple
+% authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to
+% break the lines. Using \AND forces a line break at that point. So,
+% if LaTeX puts 3 of 4 authors names on the first line, and the last
+% on the second line, try using \AND instead of \And before the third
+% author name.
+
+% NOTE: authors will be visible only in the camera-ready and preprint versions (i.e., when using the option 'final' or 'preprint'). 
+% 	For the initial submission the authors will be anonymized.
+
+\author{
+  Team 11\\
+  CS 7648\\
+  Georgia Institute of Technology
+  United States\\
+  \texttt{\{varunagrawal,ssingh794,yahn41\}@gatech.edu} \\
+  %% examples of more authors
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \AND
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+}
+
+
+\begin{document}
+\maketitle
+
+\vspace{-3.5em}
+\section{Problem}
+
+2) What is the problem you are trying to solve -- not how you are trying to solve it, but the issue you want to address. 
+
+\begin{itemize}
+    \item Further explanation of what properties are useful for our application.
+    \item In order for robots to be more accessible to non-experts, they should be able to learn from sub-optimal demonstrations. We propose our method of handling sub-optimality by extracting the best nominal trajectory for learning the policy. (*include details on controller and policy*)
+
+\end{itemize} 
+
+%===============================================================================
+\vspace{-1em}
+\section{Project Motivation}
+
+3) Why the existing literature isn't sufficient. For example, you want to reduce the sample complexity of LfD algorithms because current approaches impose too much workload on users.
+
+\begin{itemize}
+    \item  The current method of finding a nominal trajectory in RMPFlow is Dynamic Time Warping, but the assumption is that the trajectories are all optimal. However, we would like to make our system robust to sub-optimal demonstrations.
+    \item Trying to use LfD in a way that is more generic and non-linear space using sub-optimal trajectories and personalization.
+    \item Other work does not account for updating demonstrations nor handle sub-optimality
+    \item Gaussian Process Regression is computationally efficient to model a set of trajectories. (can define covariance function with NNs, interpretability, non-parameterized, don't need a lot of data/trajectories)
+    
+\end{itemize}
+
+%===============================================================================
+\section{Approach}
+4) How your approach will work (or what your experiment will do to answer a novel question).
+
+\begin{itemize}
+    \item 
+\end{itemize}
+
+
+%===============================================================================
+
+\section{Project Update}
+
+5) What progress you have made since your proposal.
+\begin{itemize}
+    \item baseline RMP working for simple drawing task
+    \item GP regression on simple drawing task
+\end{itemize}
+
+%===============================================================================
+
+\section{Future Plan}
+
+6) What is your plan moving forward (including a Gantt chart)
+
+\begin{itemize}
+    \item integrate the two: GP and RMPFlow
+    \item extend to larger tasks 
+\end{itemize}
+
+%===============================================================================
+
+\section{Request for Feedback}
+
+7) What are the major issues/questions you need my help with.
+%===============================================================================
+
+% \section{Timeline}
+% \begin{itemize}
+%     \item Week 1 Setup all the necessary software.
+%     \item Week 2 Data collection for push task and Assistive Gym task.
+%     \item Week 3 Project design and implementation.
+%     \item Week 4-6 Evaluation and debugging.
+%     \item Week 7 Report and presentation creation.
+% \end{itemize}
+
+%\clearpage
+% The acknowledgments are automatically included only in the final and preprint versions of the paper.
+%\acknowledgments{If a paper is accepted, the final camera-ready version will (and probably should) include acknowledgments. All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support.}
+
+%===============================================================================
+
+% no \bibliographystyle is required, since the corl style is automatically used.
+\bibliography{refs}  % .bib
+
+\end{document}
