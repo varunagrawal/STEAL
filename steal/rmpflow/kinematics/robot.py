@@ -4,10 +4,11 @@ import numpy as np
 import torch
 from urdf_parser_py.urdf import URDF, Pose
 
-from .taskmaps import TaskMap
+from steal.rmpflow.kinematics.taskmaps import TaskMap
 
 
 class JointLimit(object):
+    """Class representing joint limits."""
 
     def __init__(self, lower=None, upper=None):
         self.lower = lower
@@ -15,8 +16,9 @@ class JointLimit(object):
 
 
 class Robot(object):
+    """Class representing a robot."""
 
-    def __init__(self, urdf_path=None, workspace_dim=3):
+    def __init__(self, urdf_path=None, workspace_dim=3, verbose=False):
         self.workspace_dim = workspace_dim
         self.link_names = []
         self.joint_names = []
@@ -26,34 +28,37 @@ class Robot(object):
             try:
                 self.robot_model = URDF.from_parameter_server(
                     key='robot_description')
-            except:
+            except Exception as exc:
                 raise RuntimeError(
-                    "Could not create kinematic tree from /robot_description.")
+                    "Could not create kinematic tree from /robot_description."
+                ) from exc
         else:
-            try:
-                self.robot_model = URDF.from_xml_file(file_path=urdf_path)
-            except:
-                raise RuntimeError(
-                    "Could not create kinematic tree from urdf file")
+            self.robot_model = URDF.from_xml_file(file_path=urdf_path)
 
         self.base_link_ = self.robot_model.get_root()
         self.set_properties_from_model()
-        self.sort_link_names(
-        )  #TODO: if you add a link to tree, make sure to sort link names!
-        self.print_robot_description()
+        #TODO: if you add a link to tree, make sure to sort link names!
+        self.sort_link_names()
 
-        self.task_maps = self.get_all_task_maps()  #dict of all task maps
+        # dict of all task maps
+        self.task_maps = self.get_all_task_maps()
+
+        if verbose:
+            print(self)
 
     @property
     def num_joints(self):
+        """Get the number of joints in the robot."""
         return len(self.joint_names)
 
     @property
     def num_links(self):
+        """Get the number of links in the robot."""
         return len(self.link_names)
 
     @property
     def cspace_dim(self):
+        """Get the configuration space dimension of the robot."""
         return len(self.joint_names)
 
     def forward_kinematics(self, q):
@@ -64,36 +69,40 @@ class Robot(object):
         '''
         fk = torch.zeros(self.workspace_dim, self.num_links, device=q.device)
         n = 0
-        for link_name, task_map in self.task_maps.items():
+        for _, task_map in self.task_maps.items():
             fk[:, n] = task_map.psi(q).flatten()
             n += 1
 
         return fk
 
     def set_properties_from_model(self):
-        for key, value in self.robot_model.link_map.items():
+        """Set all relevant properties from the robot_model object."""
+        for _, value in self.robot_model.link_map.items():
             self.link_names.append(value.name)
 
-        for i in range(len(self.robot_model.joints)):
-            if self.robot_model.joints[i].joint_type != 'fixed':
-                self.joint_names.append(self.robot_model.joints[i].name)
-                if self.robot_model.joints[i].limit is not None:
-                    lower = self.robot_model.joints[i].limit.lower
-                    upper = self.robot_model.joints[i].limit.upper
+        for _, joint in enumerate(self.robot_model.joints):
+            if joint.joint_type != 'fixed':
+                self.joint_names.append(joint.name)
+                if joint.limit is not None:
+                    lower = joint.limit.lower
+                    upper = joint.limit.upper
                 else:
                     lower = None
                     upper = None
                 self.joint_limits.append(JointLimit(lower=lower, upper=upper))
 
+        self.joints = self.robot_model.joints
+        self.links = self.robot_model.links
+
     def sort_link_names(self):
+        """Sort robot link names alphabetically."""
         # sorting by name
         sorted_idx = np.argsort(self.link_names)
         self.link_names = [self.link_names[i] for i in sorted_idx]
 
         num_segments_list = []
-        for i in range(len(self.link_names)):
-            chain = self.robot_model.get_chain(self.base_link_,
-                                               self.link_names[i])
+        for _, link_name in enumerate(self.link_names):
+            chain = self.robot_model.get_chain(self.base_link_, link_name)
             num_segments = len(chain)
             num_segments_list.append(num_segments)
 
@@ -101,24 +110,26 @@ class Robot(object):
         sorted_idx = np.argsort(num_segments_list)
         self.link_names = [self.link_names[i] for i in sorted_idx]
 
-    def print_robot_description(self):
-        print("URDF non-fixed joints: %d" % len(self.joint_names))
-        print("URDF total joints: %d" % len(self.robot_model.joints))
-        print("URDF links: %d" % len(self.robot_model.links))
-        print("Non-fixed joints: " + str(self.joint_names))
-        print("Links: " + str(self.link_names))
+    def __str__(self):
+        """Convenience method to print all robot stats."""
+        s = ""
+        s += f"URDF non-fixed joints: {len(self.joint_names)}\n"
+        s += f"URDF total joints: {len(self.joints)}\n"
+        s += f"URDF links: {len(self.links)}\n"
+        s += f"Non-fixed joints: {str(self.joint_names)}\n"
+        s += f"Links: {str(self.link_names)}"
+        return s
 
     def get_all_task_maps(self, base_link=None):
-        '''
-        finds the kinematics as a dict for all the links with the root link as the base of the robot by default
-        :return:
-        '''
+        """
+        Finds the forward kinematics as a dict for all the links
+        with the root link as the base of the robot by default.
+        """
         task_maps = OrderedDict()
         if base_link is None:
             base_link = self.base_link_
 
-        for i in range(len(self.link_names)):
-            target_link = self.link_names[i]
+        for _, target_link in enumerate(self.link_names):
             task_maps[target_link] = self.get_task_map(target_link=target_link,
                                                        base_link=base_link)
         return task_maps
@@ -127,13 +138,13 @@ class Robot(object):
                      target_link,
                      base_link=None,
                      device=torch.device('cpu')):
-        '''
-        Gives the task map to be used by RMPflow
+        """
+        Get the forward kinematics task map to be used by RMPflow
         :param target_link:
         :param base_link:
         :param np_joint_names: list of joint names in order
         :return:
-        '''
+        """
         if base_link is None:
             base_link = self.base_link_
 
@@ -242,6 +253,7 @@ def T_rpy(displacement, rpy, device=torch.device('cpu')):
 
 
 def T_prismatic(xyz, rpy, axis, qi, batch_size=1, device=torch.device('cpu')):
+    """Homogeneous transformation matrix for prismatic joint."""
     T = torch.zeros(batch_size, 4, 4, device=device)
 
     # Origin rotation from RPY ZYX convention
@@ -282,6 +294,7 @@ def T_prismatic(xyz, rpy, axis, qi, batch_size=1, device=torch.device('cpu')):
 
 
 def T_revolute(xyz, rpy, axis, qi, batch_size=1, device=torch.device('cpu')):
+    """Homogeneous transformation matrix for prismatic joint."""
     T = torch.zeros(batch_size, 4, 4, device=device)
 
     # Origin rotation from RPY ZYX convention

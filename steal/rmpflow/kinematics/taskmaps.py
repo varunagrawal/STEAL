@@ -4,6 +4,12 @@ import torch.nn as nn
 
 
 class TaskMap(nn.Module):
+    """
+    Task map base type.
+
+    A Task Map is a differentiable function which maps from
+    the configuration space to a (sub-)task space.
+    """
 
     def __init__(self,
                  n_inputs,
@@ -138,6 +144,7 @@ class TaskMap(nn.Module):
         return Jd
 
     def forward(self, x, xd=None, order=2):
+        """Forward function call for task map."""
         if self.J_ is not None:
             if order == 1:
                 y = self.psi(x)
@@ -238,7 +245,8 @@ class TaskMap(nn.Module):
             # if order == 2
             assert xd is not None, ValueError(
                 "Taskmap requires xd for the second-order version")
-            if self.J_dot_ is None:  #TODO: use the same way as done in next condition (no for loops)
+            #TODO: use the same way as done in next condition (no for loops)
+            if self.J_dot_ is None:
                 Jd = torch.zeros(n,
                                  self.n_outputs,
                                  self.n_inputs,
