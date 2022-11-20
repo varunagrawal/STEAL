@@ -1,23 +1,28 @@
 import os
 import numpy as np
 from lasa_load_data import LASA
+import pickle as pkl
+from pathlib import Path
 
+# script for generating .pickle files from .mat files
 def main():
     
-    print('Loading dataset...')
+    dir_path = os.getcwd()
+    data_path = os.path.join(dir_path,'data/LASADataset')
+
+    file_list = []
+    for file in os.listdir(data_path):
+        if file.endswith('.mat'):
+            file_list.append(file)
     
-    data_path = os.getcwd()+'/../data/LASADataset'
-    lasa = LASA(data_path, data_name='heee')
-    
-    num_demos = lasa.num_demos
-    dataset = lasa.trajectory
-    
-    for i in range(num_demos):
-        
-        pos = np.array(dataset[i][0])
-        time = np.array(dataset[i][1])
-        vel = np.array(dataset[i][2])
-        acc = np.array(dataset[i][3])
+    for file in file_list:
+        data_name = file
+        lasa = LASA(data_path, data_name=data_name)
+        dataset = lasa.trajectory
+        dump_path = os.path.join(dir_path,'data/LASADataset_traj_pkl')
+
+        with open(os.path.join(dump_path,os.path.splitext(file)[0]+'.pickle'), 'wb') as handle:
+            pkl.dump(dataset, handle, protocol=pkl.HIGHEST_PROTOCOL)
     
     
 

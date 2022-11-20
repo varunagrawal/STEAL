@@ -9,16 +9,24 @@ class LASA:
     Loads LASA dataset
     path: Path for the directory 
     data_name: .mat file name 
+    returns trajectory: List of 7 demonstrations
+    
+    trajectory format: List of 7 demonstrations. Each demonstration has 
+    following components:
+        * (2x1000) array: x & y positions
+        * (1x1000) array: time
+        * (2x1000) array: x & y velocity
+        * (2x1000) array: x & y acceleration
 
     '''
 
     def __init__(self, path, data_name) :
-        self.num_demos, self.trajectory = self.load_data(path, data_name) 
+        self.trajectory = self.load_data(path, data_name) 
 
 
     def load_data(self, path, data_name):
         dataset_path = path
-        data = sio.loadmat(os.path.join(dataset_path, data_name + '.mat'))
+        data = sio.loadmat(os.path.join(dataset_path, data_name))
         
         trajectories = []
 
@@ -42,4 +50,4 @@ class LASA:
 
             trajectories.append(demo)
 
-        return num_demos, trajectories
+        return trajectories
