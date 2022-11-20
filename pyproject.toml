@@ -27,3 +27,9 @@ yapf = "^0.32.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# pyproject.toml
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.* deprecated:DeprecationWarning"
+]
