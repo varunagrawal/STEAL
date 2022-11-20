@@ -1,6 +1,8 @@
+"""Various task maps for computing distances."""
+
 import torch
 
-from .taskmaps import TaskMap
+from steal.rmpflow.kinematics.taskmaps import TaskMap
 
 
 def get_distance_taskmap(type='sphere', **kwargs):
@@ -18,9 +20,9 @@ def get_distance_taskmap(type='sphere', **kwargs):
 
 
 class SphereDistanceTaskMap(TaskMap):
-    '''
-	Task map for spherical type obstacles
-	'''
+    """
+    Task map for spherical type obstacles
+    """
 
     def __init__(self,
                  n_inputs,
@@ -36,34 +38,36 @@ class SphereDistanceTaskMap(TaskMap):
         self.radius = radius
         self.n_inputs = n_inputs
 
-        def psi(x):
-            return torch.norm(x - self.center, dim=1).reshape(
-                -1, 1) / self.radius - 1.0
-
-        def J(x):
-            return (1.0 / torch.norm(x - self.center, dim=1).reshape(-1, 1) *
-                    (x - self.center) / self.radius).unsqueeze(1)
-
-        def J_dot(x, xd):
-            n = x.shape[0]
-            x_norm = torch.norm(x - self.center).reshape(-1, 1)
-            Jd = -1.0 / x_norm ** 3 * torch.einsum('bi,bj->bij', x - self.center, x - self.center) \
-              + 1.0 / x_norm * torch.eye(self.n_inputs, device = self.device).repeat(n,1,1)
-            Jd = torch.einsum('bi, bij->bj', xd, Jd).unsqueeze(1)
-            return Jd
-
         super(SphereDistanceTaskMap, self).__init__(n_inputs=self.n_inputs,
                                                     n_outputs=1,
-                                                    psi=psi,
-                                                    J=J,
-                                                    J_dot=J_dot,
+                                                    psi=self.psi,
+                                                    J=self.J,
+                                                    J_dot=self.J_dot,
                                                     device=self.device)
+
+    def psi(self, x):
+        """Compute the distance from x to the edge of the sphere."""
+        return torch.norm(x - self.center, dim=1).reshape(
+            -1, 1) / self.radius - 1.0
+
+    def J(self, x):
+        jacobian = (1.0 / torch.norm(x - self.center, dim=1).reshape(-1, 1) *
+                    (x - self.center) / self.radius)
+        return jacobian.unsqueeze(1).unsqueeze(1)
+
+    def J_dot(self, x, xd):
+        n = x.shape[0]
+        x_norm = torch.norm(x - self.center).reshape(-1, 1)
+        Jd = -1.0 / x_norm ** 3 * torch.einsum('bi,bj->bij', x - self.center, x - self.center) \
+            + 1.0 / x_norm * torch.eye(self.n_inputs, device = self.device).repeat(n,1,1)
+        Jd = torch.einsum('bi, bij->bj', xd, Jd).unsqueeze(1)
+        return Jd
 
 
 class PointDistanceTaskMap(TaskMap):
-    '''
+    """
     Task map for point type obstacles
-    '''
+    """
 
     def __init__(self, n_inputs, center=None, device=torch.device('cpu')):
         self.device = device
@@ -120,9 +124,9 @@ class BoxDistanceTaskMap(TaskMap):
 
 
 class CylinderDistanceTaskMap(TaskMap):
-    '''
-    Cylinder task map essentially
-    '''
+    """
+    Task map for computing distance to cylinder object.
+    """
 
     def __init__(self, x1, x2, radius=0., device=torch.device('cpu')):
         self.x1 = x1.to(device=self.device, dtype=torch.get_default_dtype())
@@ -149,11 +153,12 @@ class CylinderDistanceTaskMap(TaskMap):
 
 
 def PointLineSegmentDistance(x1, x2, y, get_alpha_ret=False):
-    '''
-    Calculates and returns the shortest distance between a point y and the  line segment defined by (x1, x2).
+    """
+    Calculates and returns the shortest distance between a point y
+    and the line segment defined by (x1, x2).
     Optionally returns the alpha blending between the two as a return parameter defined as:
     x* = (1 - alpha) x1 + alpha x2 = x1 + alpha (x2 - x1)
-    '''
+    """
     dist, alpha_ = PointLineDistance(x1, x2 - x1, y, get_alpha=True)
 
     if alpha_ < 0.:
@@ -172,8 +177,10 @@ def PointLineSegmentDistance(x1, x2, y, get_alpha_ret=False):
 
 
 def PointLineDistance(x, v_x, y, get_alpha=False):
-    # Calculates and returns the shortest distance between a point y and
-    # the line defined by x + alpha v_x.
+    """
+    Calculates and returns the shortest distance between a point y and
+    the line defined by x + alpha v_x.
+    """
     v_x_norm = torch.norm(v_x, dim=1).reshape(-1, 1)
 
     v_x_hat = v_x / v_x_norm

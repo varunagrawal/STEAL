@@ -62,11 +62,11 @@ class Robot(object):
         return len(self.joint_names)
 
     def forward_kinematics(self, q):
-        '''
+        """
         Gives a DxN of array of positions for all the links
         :param q:
         :return:
-        '''
+        """
         fk = torch.zeros(self.workspace_dim, self.num_links, device=q.device)
         n = 0
         for _, task_map in self.task_maps.items():
@@ -95,7 +95,7 @@ class Robot(object):
         self.links = self.robot_model.links
 
     def sort_link_names(self):
-        """Sort robot link names alphabetically."""
+        """Sort robot link names by chain size from base link."""
         # sorting by name
         sorted_idx = np.argsort(self.link_names)
         self.link_names = [self.link_names[i] for i in sorted_idx]
@@ -124,6 +124,8 @@ class Robot(object):
         """
         Finds the forward kinematics as a dict for all the links
         with the root link as the base of the robot by default.
+
+        Each link's FK is stored as a TaskMap that can be used in a RMPTree.
         """
         task_maps = OrderedDict()
         if base_link is None:
