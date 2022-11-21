@@ -15,6 +15,7 @@ fastdtw = "^0.3.4"
 tensorboardX = "^2.5.1"
 scipy = "^1.9.3"
 gpytorch = "^1.9.0"
+urdf_parser_py = "^0.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0.0"
