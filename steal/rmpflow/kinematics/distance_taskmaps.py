@@ -53,7 +53,7 @@ class SphereDistanceTaskMap(TaskMap):
     def J(self, x):
         jacobian = (1.0 / torch.norm(x - self.center, dim=1).reshape(-1, 1) *
                     (x - self.center) / self.radius)
-        return jacobian.unsqueeze(1).unsqueeze(1)
+        return jacobian.unsqueeze(1)
 
     def J_dot(self, x, xd):
         n = x.shape[0]
