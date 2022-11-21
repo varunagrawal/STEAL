@@ -164,25 +164,6 @@ unicode = ["unicodedata2 (>=14.0.0)"]
 woff = ["brotli (>=1.0.1)", "brotlicffi (>=0.8.0)", "zopfli (>=0.1.4)"]
 
 [[package]]
-name = "gpytorch"
-version = "1.9.0"
-description = "An implementation of Gaussian Processes in Pytorch"
-category = "main"
-optional = false
-python-versions = ">=3.8"
-
-[package.dependencies]
-linear-operator = ">=0.1.1"
-scikit-learn = "*"
-
-[package.extras]
-dev = ["black", "pre-commit", "twine"]
-examples = ["ipython", "jupyter", "matplotlib", "scipy", "torchvision", "tqdm"]
-keops = ["pykeops (>=1.1.1)"]
-pyro = ["pyro-ppl (>=1.8)"]
-test = ["flake8 (==4.0.1)", "flake8-print (==4.0.0)", "nbval", "pytest"]
-
-[[package]]
 name = "iniconfig"
 version = "1.1.1"
 description = "iniconfig: brain-dead simple config-ini parsing"
@@ -255,14 +236,6 @@ qa = ["flake8 (==3.8.3)", "mypy (==0.782)"]
 testing = ["Django (<3.1)", "colorama", "docopt", "pytest (<7.0.0)"]
 
 [[package]]
-name = "joblib"
-version = "1.2.0"
-description = "Lightweight pipelining with Python functions"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[[package]]
 name = "kiwisolver"
 version = "1.4.4"
 description = "A fast implementation of the Cassowary constraint solver"
@@ -277,22 +250,6 @@ description = "A fast and thorough lazy object proxy."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
-
-[[package]]
-name = "linear-operator"
-version = "0.2.0"
-description = "A linear operator implementation, primarily designed for finite-dimensional positive definite operators (i.e. kernel matrices)."
-category = "main"
-optional = false
-python-versions = ">=3.8"
-
-[package.dependencies]
-scipy = "*"
-torch = ">=1.11"
-
-[package.extras]
-dev = ["black", "pre-commit", "twine"]
-test = ["flake8 (==4.0.1)", "flake8-print (==4.0.0)"]
 
 [[package]]
 name = "loguru"
@@ -607,26 +564,6 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "scikit-learn"
-version = "1.1.3"
-description = "A set of python modules for machine learning and data mining"
-category = "main"
-optional = false
-python-versions = ">=3.8"
-
-[package.dependencies]
-joblib = ">=1.0.0"
-numpy = ">=1.17.3"
-scipy = ">=1.3.2"
-threadpoolctl = ">=2.0.0"
-
-[package.extras]
-benchmark = ["matplotlib (>=3.1.2)", "memory-profiler (>=0.57.0)", "pandas (>=1.0.5)"]
-docs = ["Pillow (>=7.1.2)", "matplotlib (>=3.1.2)", "memory-profiler (>=0.57.0)", "numpydoc (>=1.2.0)", "pandas (>=1.0.5)", "scikit-image (>=0.16.2)", "seaborn (>=0.9.0)", "sphinx (>=4.0.1)", "sphinx-gallery (>=0.7.0)", "sphinx-prompt (>=1.3.0)", "sphinxext-opengraph (>=0.4.2)"]
-examples = ["matplotlib (>=3.1.2)", "pandas (>=1.0.5)", "scikit-image (>=0.16.2)", "seaborn (>=0.9.0)"]
-tests = ["black (>=22.3.0)", "flake8 (>=3.8.2)", "matplotlib (>=3.1.2)", "mypy (>=0.961)", "numpydoc (>=1.2.0)", "pandas (>=1.0.5)", "pyamg (>=4.0.0)", "pytest (>=5.0.1)", "pytest-cov (>=2.9.0)", "scikit-image (>=0.16.2)"]
-
-[[package]]
 name = "scipy"
 version = "1.9.3"
 description = "Fundamental algorithms for scientific computing in Python"
@@ -710,14 +647,6 @@ numpy = "*"
 protobuf = ">=3.8.0,<=3.20.1"
 
 [[package]]
-name = "threadpoolctl"
-version = "3.1.0"
-description = "threadpoolctl"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -741,108 +670,6 @@ category = "dev"
 optional = false
 python-versions = ">=3.6"
 
-[[package]]
-name = "torch"
-version = "1.13.0"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.7.0"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.extras]
-opt-einsum = ["opt-einsum (>=3.3)"]
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.13.0-cp38-none-macosx_11_0_arm64.whl"
-[[package]]
-name = "torch"
-version = "1.13.0"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.7.0"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.extras]
-opt-einsum = ["opt-einsum (>=3.3)"]
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.13.0-cp39-none-macosx_11_0_arm64.whl"
-[[package]]
-name = "torch"
-version = "1.13.0+cpu"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.7.0"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.extras]
-opt-einsum = ["opt-einsum (>=3.3)"]
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.13.0%2Bcpu-cp38-cp38-linux_x86_64.whl"
-[[package]]
-name = "torch"
-version = "1.13.0+cpu"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.7.0"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.extras]
-opt-einsum = ["opt-einsum (>=3.3)"]
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.13.0%2Bcpu-cp38-cp38-win_amd64.whl"
-[[package]]
-name = "torch"
-version = "1.13.0+cpu"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.7.0"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.extras]
-opt-einsum = ["opt-einsum (>=3.3)"]
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.13.0%2Bcpu-cp39-cp39-linux_x86_64.whl"
-[[package]]
-name = "torch"
-version = "1.13.0+cpu"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.7.0"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.extras]
-opt-einsum = ["opt-einsum (>=3.3)"]
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.13.0%2Bcpu-cp39-cp39-win_amd64.whl"
 [[package]]
 name = "traitlets"
 version = "5.5.0"
@@ -913,7 +740,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "44e9fe034569b1f5b7ca7cc5535d06d6c2a649b0722ca51de494dae7530572b2"
+content-hash = "f99d6f0d13781fdedebc168312bd697f270cbfb0cfbd668929b5f91defdd87c1"
 
 [metadata.files]
 appnope = [
@@ -1038,10 +865,6 @@ fonttools = [
     {file = "fonttools-4.38.0-py3-none-any.whl", hash = "sha256:820466f43c8be8c3009aef8b87e785014133508f0de64ec469e4efb643ae54fb"},
     {file = "fonttools-4.38.0.zip", hash = "sha256:2bb244009f9bf3fa100fc3ead6aeb99febe5985fa20afbfbaa2f8946c2fbdaf1"},
 ]
-gpytorch = [
-    {file = "gpytorch-1.9.0-py3-none-any.whl", hash = "sha256:27b871963fd548c1a53a62b290acb4d82d9b6a2ef85e93e446ec8e28f37f4d17"},
-    {file = "gpytorch-1.9.0.tar.gz", hash = "sha256:a0608184c18a1f518d6a102473427abf00f5351421e12a934530953f6887b34b"},
-]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
@@ -1057,10 +880,6 @@ isort = [
 jedi = [
     {file = "jedi-0.18.1-py2.py3-none-any.whl", hash = "sha256:637c9635fcf47945ceb91cd7f320234a7be540ded6f3e99a50cb6febdfd1ba8d"},
     {file = "jedi-0.18.1.tar.gz", hash = "sha256:74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab"},
-]
-joblib = [
-    {file = "joblib-1.2.0-py3-none-any.whl", hash = "sha256:091138ed78f800342968c523bdde947e7a305b8594b910a0fea2ab83c3c6d385"},
-    {file = "joblib-1.2.0.tar.gz", hash = "sha256:e1cee4a79e4af22881164f218d4311f60074197fb707e082e803b61f6d137018"},
 ]
 kiwisolver = [
     {file = "kiwisolver-1.4.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:2f5e60fabb7343a836360c4f0919b8cd0d6dbf08ad2ca6b9cf90bf0c76a3c4f6"},
@@ -1152,10 +971,6 @@ lazy-object-proxy = [
     {file = "lazy_object_proxy-1.8.0-pp37-pypy37_pp73-any.whl", hash = "sha256:ae032743794fba4d171b5b67310d69176287b5bf82a21f588282406a79498891"},
     {file = "lazy_object_proxy-1.8.0-pp38-pypy38_pp73-any.whl", hash = "sha256:7e1561626c49cb394268edd00501b289053a652ed762c58e1081224c8d881cec"},
     {file = "lazy_object_proxy-1.8.0-pp39-pypy39_pp73-any.whl", hash = "sha256:ce58b2b3734c73e68f0e30e4e725264d4d6be95818ec0a0be4bb6bf9a7e79aa8"},
-]
-linear-operator = [
-    {file = "linear_operator-0.2.0-py3-none-any.whl", hash = "sha256:14c687de5aad42e16eed5c0712285e8dd497b5a3b1d8ce7bb71f6b5acb15290f"},
-    {file = "linear_operator-0.2.0.tar.gz", hash = "sha256:55fc7804b9bd050f61d68542fcb4a5870ec1dbd10f663c159cb3dfb29e8ec7f2"},
 ]
 loguru = [
     {file = "loguru-0.6.0-py3-none-any.whl", hash = "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"},
@@ -1511,29 +1326,6 @@ pyyaml = [
     {file = "PyYAML-6.0-cp39-cp39-win_amd64.whl", hash = "sha256:b3d267842bf12586ba6c734f89d1f5b871df0273157918b0ccefa29deb05c21c"},
     {file = "PyYAML-6.0.tar.gz", hash = "sha256:68fb519c14306fec9720a2a5b45bc9f0c8d1b9c72adf45c37baedfcd949c35a2"},
 ]
-scikit-learn = [
-    {file = "scikit-learn-1.1.3.tar.gz", hash = "sha256:bef51978a51ec19977700fe7b86aecea49c825884f3811756b74a3b152bb4e35"},
-    {file = "scikit_learn-1.1.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:8e9dd76c7274055d1acf4526b8efb16a3531c26dcda714a0c16da99bf9d41900"},
-    {file = "scikit_learn-1.1.3-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:ee47f68d973cee7009f06edb956f2f5588a0f230f24a2a70175fd0ecf36e2653"},
-    {file = "scikit_learn-1.1.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:da5a2e95fef9805b1750e4abda4e834bf8835d26fc709a391543b53feee7bd0e"},
-    {file = "scikit_learn-1.1.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:701181792a28c82fecae12adb5d15d0ecf57bffab7cf4bdbb52c7b3fd428d540"},
-    {file = "scikit_learn-1.1.3-cp310-cp310-win_amd64.whl", hash = "sha256:30e27721adc308e8fd9f419f43068e43490005f911edf4476a9e585059fa8a83"},
-    {file = "scikit_learn-1.1.3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:5699cded6c0685426433c7e5afe0fecad80ec831ec7fa264940e50c796775cc5"},
-    {file = "scikit_learn-1.1.3-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:2ee2c649f2231b68511aabb0dc827edd8936aad682acc6263c34aed11bc95dac"},
-    {file = "scikit_learn-1.1.3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6d1c1394e38a3319ace620381f6f23cc807d8780e9915c152449a86fc8f1db21"},
-    {file = "scikit_learn-1.1.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:250da993701da88bf475e7c5746abf1285ea0ae47e4d0917cd13afd6600bb162"},
-    {file = "scikit_learn-1.1.3-cp311-cp311-win_amd64.whl", hash = "sha256:fd3ee69d36d42a7dcbb17e355a5653af5fd241a7dfd9133080b3dde8d9e2aafb"},
-    {file = "scikit_learn-1.1.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:f5644663987ee221f5d1f47a593271b966c271c236fe05634e6bdc06041b5a2b"},
-    {file = "scikit_learn-1.1.3-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:748f2bd632d6993e8918d43f1a26c380aeda4e122a88840d4c3a9af99d4239fe"},
-    {file = "scikit_learn-1.1.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cd55c6fbef7608dbce1f22baf289dfcc6eb323247daa3c3542f73d389c724786"},
-    {file = "scikit_learn-1.1.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:38814f66285318f2e241305cca545eaa9b4126c65aa5dd78c69371f235f78e2b"},
-    {file = "scikit_learn-1.1.3-cp38-cp38-win_amd64.whl", hash = "sha256:f4931f2a6c06e02c6c17a05f8ae397e2545965bc7a0a6cb38c8cd7d4fba8624d"},
-    {file = "scikit_learn-1.1.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:6785b8a3093329bf90ac01801be5525551728ae73edb11baa175df660820add4"},
-    {file = "scikit_learn-1.1.3-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:28b2bd6a1419acd522ff45d282c8ba23dbccb5338802ab0ee12baa4ade0aba4c"},
-    {file = "scikit_learn-1.1.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:23fb9e74b813cc2528b5167d82ed08950b11106ccf50297161875e45152fb311"},
-    {file = "scikit_learn-1.1.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f5d4231af7199531e77da1b78a4cc6b3d960a00b1ec672578ac818aae2b9c35d"},
-    {file = "scikit_learn-1.1.3-cp39-cp39-win_amd64.whl", hash = "sha256:4d3a19166d4e1cdfcab975c68f471e046ce01e74c42a9a33fa89a14c2fcedf60"},
-]
 scipy = [
     {file = "scipy-1.9.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1884b66a54887e21addf9c16fb588720a8309a57b2e258ae1c7986d4444d3bc0"},
     {file = "scipy-1.9.3-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:83b89e9586c62e787f5012e8475fbb12185bafb996a03257e9675cd73d3736dd"},
@@ -1577,10 +1369,6 @@ tensorboardx = [
     {file = "tensorboardX-2.5.1-py2.py3-none-any.whl", hash = "sha256:8808133ccca673cd04076f6f2a85cf2d39bb2d0393a0f20d0f9cbb06d472b57e"},
     {file = "tensorboardX-2.5.1.tar.gz", hash = "sha256:ea85a3446f22ce8a917fe4fa4d8a7a96222ef84ac835267d038c34bb99f6d61b"},
 ]
-threadpoolctl = [
-    {file = "threadpoolctl-3.1.0-py3-none-any.whl", hash = "sha256:8b99adda265feb6773280df41eece7b2e6561b772d21ffd52e372f999024907b"},
-    {file = "threadpoolctl-3.1.0.tar.gz", hash = "sha256:a335baacfaa4400ae1f0d8e3a58d6674d2f8828e3716bb2802c44955ad391380"},
-]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
@@ -1593,7 +1381,6 @@ tomlkit = [
     {file = "tomlkit-0.11.6-py3-none-any.whl", hash = "sha256:07de26b0d8cfc18f871aec595fda24d95b08fef89d147caa861939f37230bf4b"},
     {file = "tomlkit-0.11.6.tar.gz", hash = "sha256:71b952e5721688937fb02cf9d354dbcf0785066149d2855e44531ebdd2b65d73"},
 ]
-torch = []
 traitlets = [
     {file = "traitlets-5.5.0-py3-none-any.whl", hash = "sha256:1201b2c9f76097195989cdf7f65db9897593b0dfd69e4ac96016661bb6f0d30f"},
     {file = "traitlets-5.5.0.tar.gz", hash = "sha256:b122f9ff2f2f6c1709dab289a05555be011c87828e911c0cf4074b85cb780a79"},

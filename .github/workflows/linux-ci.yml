@@ -34,7 +34,9 @@ jobs:
         run: sudo pip3 install -U pip poetry
 
       - name: Install Project
-        run: poetry install
+        run: |
+          poetry install
+          poetry run pip install -U torch gpytorch
 
       - name: Run Tests
         run: poetry run pytest
