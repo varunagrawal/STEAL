@@ -15,7 +15,7 @@ def test_sphere_distance_task_map():
     dist = obstacle_taskmap.psi(x)
     torch.testing.assert_close(dist, torch.tensor([[0.414213538170]]))
 
-    actual_jacobian = obstacle_taskmap.J(x)
+    actual_jacobian = obstacle_taskmap.J(x).unsqueeze(1)
     expected_jacobian = torch.autograd.functional.jacobian(
         obstacle_taskmap.psi, x, create_graph=True)
     torch.testing.assert_close(actual_jacobian, expected_jacobian)
