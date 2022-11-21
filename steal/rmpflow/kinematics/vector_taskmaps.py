@@ -132,7 +132,7 @@ class DimSelectorTaskMap(TaskMap):
 
 
 if __name__ == '__main__':
-    map = SphericalTargetTaskMap(center=torch.zeros(1, 2), radius=1.)
+    sphere_map = SphericalTargetTaskMap(center=torch.zeros(1, 2), radius=1.)
 
     tm = DimSelectorTaskMap(n_inputs=4, selected_dims=torch.arange(0, 2))
     y, yd, J, Jd = tm(torch.zeros(10, 4), torch.zeros(10, 4), order=2)
