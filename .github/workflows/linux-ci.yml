@@ -7,6 +7,10 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
 
+    env:
+      # Needed for Poetry in a private repo
+      PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
+
     strategy:
       fail-fast: true
       matrix:
