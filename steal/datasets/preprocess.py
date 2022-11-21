@@ -202,14 +202,6 @@ def transform_inv(T):
     return T_inv
 
 
-def transform_pt(pt, transform_mat):
-    """Transform a point to a different reference frame specified by `tranform_mat`."""
-    pt = np.concatenate((pt, np.ones((1, 1))))
-    pt_transformed = np.dot(transform_mat, pt)[0:3].reshape(-1, 1)
-
-    return pt_transformed
-
-
 def resample_trajectory(traj, num_samples):
     """Resample `traj` with `num_samples` points."""
     resampled_traj = np.zeros((num_samples, traj.shape[1]))
