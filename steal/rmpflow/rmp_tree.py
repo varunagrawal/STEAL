@@ -5,6 +5,8 @@ import abc
 import torch
 from torch import nn
 
+from steal.rmpflow.kinematics.taskmaps import TaskMap
+
 
 # TODO: rmp order should be an input to the initializer
 class Rmp(nn.Module):
@@ -59,16 +61,29 @@ class RmpTreeNode(Rmp):
         super(RmpTreeNode, self).__init__(return_natural=return_natural)
         self.n_dim = n_dim  # dimension of the node task space
         self.name = name
-        self.edges = torch.nn.ModuleList(
-        )  # list of edges connecting other nodes
-        self.rmps = torch.nn.ModuleList()  # list of leaf rmps
-        self.order = order  # order of rmp node (1: momentum-based, 2: force-based)
+        # list of edges connecting other nodes
+        self.edges = torch.nn.ModuleList()
+        # list of leaf rmps
+        self.rmps = torch.nn.ModuleList()
+        # order of rmp node (1: momentum-based, 2: force-based)
+        self.order = order
         self.device = device
 
     def add_rmp(self, rmp):
+        """Add RMP to list of leaves."""
         self.rmps.append(rmp)
 
-    def add_task_space(self, task_map, name=""):
+    def add_task_space(self, task_map: TaskMap, name=""):
+        """Generate new Task Space and add it to the RMP tree.
+
+        Args:
+            task_map (_type_): The new task map to add.
+            name (str, optional): The name of the RMP tree node
+            assigned to the task map. Defaults to "".
+
+        Returns:
+            RmpTreeNode: The child RMPTree node added.
+        """
         assert (
             self.n_dim == task_map.n_inputs), ValueError('Dimension mismatch!')
         child_node = RmpTreeNode(n_dim=task_map.n_outputs,

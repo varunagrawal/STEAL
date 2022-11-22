@@ -1,6 +1,13 @@
 # STEAL
 Simultaneous Trajectory Estimation and Learning
 
+## Install
+
+```
+pip install poetry
+poetry install
+poetry run pip install -U torch gpytorch
+```
 ## Datasets
 
 - [LASA Dataset](https://cs.stanford.edu/people/khansari/download.html)
