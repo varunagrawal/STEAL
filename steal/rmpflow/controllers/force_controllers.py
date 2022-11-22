@@ -55,7 +55,7 @@ class NaturalGradientDescentForceController(Rmp):
                 self.del_Phi = self.Phi.grad
             else:
                 print('Using numerical del_Phi')
-                self.del_Phi = self.find_potential_gradient
+                self.del_Phi = self.potential_gradient
 
     def eval_natural(self, x, xd, t=None):
         del_Phi = self.del_Phi(x)
@@ -66,7 +66,7 @@ class NaturalGradientDescentForceController(Rmp):
         # f = -del_Phi - self.damping_force(x, xd)
         return f, M
 
-    def find_potential_gradient(self, x):
+    def potential_gradient(self, x):
         n, d = x.size()
         x.requires_grad_(True)
         Phi = self.Phi(x).reshape(-1, 1)
@@ -167,7 +167,7 @@ class NaturalGradientDescentForceController(Rmp):
 #         if self.del_Phi is None:
 #             print('Using numerical del_Phi')
 #             assert self.Phi is not None, ValueError('Phi has to be specified if del_Phi isnt available')
-#             self.del_Phi = self.find_potential_gradient
+#             self.del_Phi = self.potential_gradient
 #
 #     def forward(self, t, x, xd):
 #         del_Phi = self.del_Phi(x)
@@ -178,7 +178,7 @@ class NaturalGradientDescentForceController(Rmp):
 #         f = -del_Phi - xi - self.damping_force(x, xd)
 #         return f, M
 #
-#     def find_potential_gradient(self, x):
+#     def potential_gradient(self, x):
 #         n = x.size()[0]
 #         x.requires_grad_(True)
 #         Phi = self.Phi(x).reshape(-1,1)

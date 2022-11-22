@@ -30,14 +30,15 @@ class NaturalGradientDescentMomentumController(Rmp):
                 self.del_Phi = self.Phi.grad
             else:
                 print('Using numerical del_Phi')
-                self.del_Phi = self.find_potential_gradient
+                self.del_Phi = self.potential_gradient
 
     def eval_natural(self, x, xd=None, t=None):
         p = -self.del_Phi(x)
         M = self.G(x)
         return p, M
 
-    def find_potential_gradient(self, x):
+    def potential_gradient(self, x):
+        """Compute gradient of the potential ∇Φ"""
         n, d = x.size()
         x.requires_grad_(True)
         Phi = self.Phi(x).reshape(-1, 1)
