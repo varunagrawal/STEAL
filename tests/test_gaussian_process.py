@@ -1,5 +1,7 @@
 import unittest
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import axes3d
 import gpytorch
 import numpy as np
 import numpy.testing as npt
@@ -7,6 +9,7 @@ import pytest
 import torch
 import pickle as pkl
 import os
+import pyLasaDataset as lasa
 from pathlib import Path
 from gpytorch.distributions import MultivariateNormal
 from gpytorch.kernels import ScaleKernel
@@ -17,22 +20,19 @@ from gpytorch.models import ExactGP
 torch.manual_seed(1813)
 
 def load_trajectory():
-    dir_path = Path(os.getcwd()).parent
-    data_path = os.path.join(dir_path,'data/LASADataset_traj_pkl/heee.pickle')
-    with open(data_path, "rb") as input_file:
-        dataset = pkl.load(input_file)
+    return lasa.DataSet.heee.demos
 
-    return dataset
-
-def train_x_data(trajectory):
+def train_x_data(trajectory, i):
     """Training x data is time"""
-    return torch.tensor(trajectory[0][1][0])
+    return torch.tensor(trajectory[i].t[0])
 
+def train_y_data1(trajectory, i):
+    """Training output data is x position"""
+    return torch.tensor(trajectory[i].pos[0,:])
 
-def train_y_data(trajectory):
+def train_y_data2(trajectory, i):
     """Training output data is y position"""
-    return torch.tensor(trajectory[0][0][1,:])
-
+    return torch.tensor(trajectory[i].pos[1,:])
 
 class ExactGPModel(gpytorch.models.ExactGP):
     """We will use the simplest form of GP model, exact inference"""
@@ -47,86 +47,146 @@ class ExactGPModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-
 class TestGaussianProcess(unittest.TestCase):
 
     def test_gp(self):
         
         trajectory = load_trajectory()
         assert len(trajectory) == 7
+
+        # for i in range(len(trajectory)):
+        #     assert trajectory[i].pos.shape == (2,1000)
+        #     assert trajectory[i].t.shape == (1,1000)
+        #     assert trajectory[i].vel.shape == (2,1000)
+        #     assert trajectory[i].acc.shape == (2,1000)
+        
+        #     train_x = train_x_data(trajectory, i)
+        #     print(train_x.dtype)
+            
+        #     assert len(train_x) == 1000
+
+        #     train_y1 = train_y_data1(trajectory, i)
+        #     print(train_y1.dtype)
+
+        #     assert len(train_y1) == 1000
+            
+        #     # visualize the data
+        #     plt.plot(train_x.numpy(), train_y1.numpy(), label='Observed Data '+str(i))
+
+        # plt.legend()
+        # plt.show()
+
+        train_x = np.zeros((7000))
+        train_y1 = np.zeros((7000))
+        train_y2 = np.zeros((7000))
         for i in range(len(trajectory)):
-            assert len(trajectory[i]) == 4
-            assert trajectory[i][0].shape == (2,1000)
-            assert trajectory[i][1].shape == (1,1000)
-            assert trajectory[i][2].shape == (2,1000)
-            assert trajectory[i][3].shape == (2,1000)
+            train_x[i*1000:1000*(i+1)] = train_x_data(trajectory, i)
+            train_y1[i*1000:1000*(i+1)] = train_y_data1(trajectory, i)
+            train_y2[i*1000:1000*(i+1)] = train_y_data2(trajectory, i)
         
-        train_x = train_x_data(trajectory)
-        print(train_x.dtype)
         
-        assert len(train_x) == 1000
-
-        train_y = train_y_data(trajectory)
-        print(train_x.dtype)
-
-        assert len(train_y) == 1000
-        
-        # visualize the data
-        
-        f, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-        # Plot training data as black stars
-        ax.plot(train_x.numpy(), train_y.numpy(), 'black')
-        ax.set_xlim([0, 4.5])
-        ax.set_ylim([-20, 25])
-        ax.legend(['Observed Data'])
-        plt.show()
+        train_x = torch.tensor(train_x)
+        train_y1 = torch.tensor(train_y1)
+        train_y2 = torch.tensor(train_y2)
 
         # initialize likelihood and model
         likelihood = gpytorch.likelihoods.GaussianLikelihood()
-        model = ExactGPModel(train_x, train_y, likelihood)
+        model = ExactGPModel(train_x, train_y1, likelihood)
+        
+        likelihood1 = gpytorch.likelihoods.GaussianLikelihood()
+        model1 = ExactGPModel(train_x, train_y2, likelihood)
+
+
+        # op = model(train_x)
+        # prior_mean = op.mean
+        # print(prior_mean.shape)
+        # plt.plot(prior_mean.detach().numpy(), label='Mean')
+
+        # prior_pred = likelihood(op)
+        # lower, upper = prior_pred.confidence_region()
+        # print(lower)
+        # print(upper)
+        # plt.fill_between(np.linspace(0,7000,1), lower.detach().numpy(), upper.detach().numpy(), alpha=0.5)
+
+        # plt.legend()
+        # plt.show()
+
+        # prior_covar = op.covariance_matrix
+        # print(prior_covar.shape)
 
         # Find optimal model hyperparameters
         model.train()
         likelihood.train()
+
+        model1.train()
+        likelihood1.train()
 
         # Use the adam optimizer
         optimizer = torch.optim.Adam(
             model.parameters(),
             lr=0.1)  # Includes GaussianLikelihood parameters
 
+        optimizer1 = torch.optim.Adam(
+            model1.parameters(),
+            lr=0.1)  # Includes GaussianLikelihood parameters
+
         # "Loss" for GPs - the marginal log likelihood
         mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+        mll1 = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood1, model1)
 
         training_iter = 22
 
         model = model.double()
+
+        model1 = model1.double()
 
         for i in range(training_iter):
             # Zero gradients from previous iteration
             optimizer.zero_grad()
             # Output from model
             output = model(train_x)
+
             # Calc loss and backprop gradients
-            loss = -mll(output, train_y)
+            loss = -mll(output, train_y1)
             loss.backward()
             print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' %
-                  (i + 1, training_iter, loss.item(),
-                   model.covar_module.base_kernel.lengthscale.item(),
-                   model.likelihood.noise.item()))
+                (i + 1, training_iter, loss.item(),
+                model.covar_module.base_kernel.lengthscale.item(),
+                model.likelihood.noise.item()))
             optimizer.step()
+        
+        for i in range(training_iter):
+            # Zero gradients from previous iteration
+            optimizer1.zero_grad()
+            # Output from model
+            output1 = model1(train_x)
+
+            # Calc loss and backprop gradients
+            loss1 = -mll1(output1, train_y2)
+            loss1.backward()
+            print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' %
+                (i + 1, training_iter, loss1.item(),
+                model1.covar_module.base_kernel.lengthscale.item(),
+                model1.likelihood.noise.item()))
+            optimizer1.step()
 
         # Get into evaluation (predictive posterior) mode
         model.eval()
         likelihood.eval()
 
+        model1.eval()
+        likelihood1.eval()
+
         # Test points are regularly spaced along [0,1]
         # Make predictions by feeding model through likelihood
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
-            test_x = torch.linspace(0, 3.91, 178).double()
-            print("##")
-            print(test_x.dtype)
+            test_x = torch.linspace(0, 6, 1000).double()
             observed_pred = likelihood(model(test_x))
+
+        with torch.no_grad(), gpytorch.settings.fast_pred_var():
+            test_x = torch.linspace(0, 6, 1000).double()
+            observed_pred1 = likelihood1(model1(test_x))
         
         with torch.no_grad():
             # Initialize plot
@@ -135,24 +195,92 @@ class TestGaussianProcess(unittest.TestCase):
             # Get upper and lower confidence bounds
             lower, upper = observed_pred.confidence_region()
             # Plot training data as black stars
-            ax.plot(train_x.numpy(), train_y.numpy(), 'k*')
+            for j in range(len(trajectory)):
+                train_x = train_x_data(trajectory, j)
+                train_y1 = train_y_data1(trajectory, j)
+                ax.plot(train_x.numpy(), train_y1.numpy(), '--')
+
             # Plot predictive means as blue line
             ax.plot(test_x.numpy(), observed_pred.mean.numpy(), 'b')
             # Shade between the lower and upper confidence bounds
             ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
-            ax.set_xlim([0, 4.5])
-            ax.set_ylim([-20, 25])
-            ax.legend(['Observed Data', 'Mean', 'Confidence'])
+            ax.set_xlim([0, 6.0])
+            #ax.set_ylim([-25, 30])
+            ax.set_ylim([-40, 15])
+            ax.legend(['Observed Demo 1','Observed Demo 2','Observed Demo 3',
+            'Observed Demo 4','Observed Demo 5','Observed Demo 6',
+            'Observed Demo 7', 'Mean', 'Confidence'])
+            ax.set_xlabel('Time')
+            ax.set_ylabel('X-position')
+            plt.show()
+        
+        with torch.no_grad():
+            # Initialize plot
+            f, ax = plt.subplots(1, 1, figsize=(4, 3))
+
+            # Get upper and lower confidence bounds
+            lower, upper = observed_pred1.confidence_region()
+            # Plot training data as black stars
+            for j in range(len(trajectory)):
+                train_x = train_x_data(trajectory, j)
+                train_y2 = train_y_data2(trajectory, j)
+                ax.plot(train_x.numpy(), train_y2.numpy(), '--')
+
+            # Plot predictive means as blue line
+            ax.plot(test_x.numpy(), observed_pred1.mean.numpy(), 'b')
+            # Shade between the lower and upper confidence bounds
+            ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
+            ax.set_xlim([0, 6.0])
+            ax.set_ylim([-25, 30])
+            ax.legend(['Observed Demo 1','Observed Demo 2','Observed Demo 3',
+            'Observed Demo 4','Observed Demo 5','Observed Demo 6',
+            'Observed Demo 7', 'Mean', 'Confidence'])
+            ax.set_xlabel('Time')
+            ax.set_ylabel('Y-position')
+            plt.show()
+        
+        with torch.no_grad():
+            # Initialize plot
+            f, ax = plt.subplots(1, 1, figsize=(4, 3))
+
+            # Plot training data as black stars
+            for j in range(len(trajectory)):
+                train_y1 = train_y_data1(trajectory, j)
+                train_y2 = train_y_data2(trajectory, j)
+                ax.plot(train_y1.numpy(), train_y2.numpy(), '--')
+
+            # Plot predictive means as blue line
+            ax.plot(observed_pred.mean.numpy(), observed_pred1.mean.numpy(), 'b')
+            # Shade between the lower and upper confidence bounds
+            # ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
+            ax.set_xlim([-40, 15])
+            ax.set_ylim([-25, 30])
+            ax.legend(['Observed Demo 1','Observed Demo 2','Observed Demo 3',
+            'Observed Demo 4','Observed Demo 5','Observed Demo 6',
+            'Observed Demo 7', 'Predicted trajectory',])
+            ax.set_xlabel('X-position')
+            ax.set_ylabel('Y-position')
             plt.show()
 
-        # expected_mean = torch.tensor([
-        #     0.0878, 0.1926, 0.3001, 0.4078, 0.5133, 0.6143, 0.7085, 0.7938,
-        #     0.8682, 0.9302, 0.9784, 1.0118, 1.0298, 1.0320, 1.0183, 0.9892,
-        #     0.9451, 0.8868, 0.8153, 0.7317, 0.6373, 0.5335, 0.4217, 0.3033,
-        #     0.1801, 0.0536, -0.0744, -0.2022, -0.3279, -0.4494, -0.5650,
-        #     -0.6723, -0.7695, -0.8545, -0.9253, -0.9803, -1.0180, -1.0373,
-        #     -1.0373, -1.0179, -0.9792, -0.9221, -0.8480, -0.7586, -0.6563,
-        #     -0.5439, -0.4242, -0.3006, -0.1762, -0.0542, 0.0624
-        # ])
-        
-        # npt.assert_allclose(observed_pred.mean.numpy(), expected_mean.numpy(), 1e-3)
+        with torch.no_grad():
+
+            fig = plt.figure(figsize=(4,4))
+            ax = fig.add_subplot(111, projection='3d')
+
+            # Plot training data as black stars
+            for j in range(len(trajectory)):
+                train_y1 = train_y_data1(trajectory, j)
+                train_y2 = train_y_data2(trajectory, j)
+                #ax.plot(train_y1.numpy(), train_y2.numpy(), '--')
+                ax.plot(train_y2.numpy(), train_y1.numpy(), test_x, '--')
+
+            # Plot predictive means as blue line
+            ax.plot(observed_pred1.mean.numpy(), observed_pred.mean.numpy(), test_x, 'b')
+            
+            ax.legend(['Observed Demo 1','Observed Demo 2','Observed Demo 3',
+            'Observed Demo 4','Observed Demo 5','Observed Demo 6',
+            'Observed Demo 7', 'Predicted trajectory',])
+            ax.set_xlabel('Y-position')
+            ax.set_ylabel('X-position')
+            ax.set_zlabel('Time')
+            plt.show()
