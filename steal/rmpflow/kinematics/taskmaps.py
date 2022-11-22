@@ -2,6 +2,8 @@ import torch
 import torch.autograd as autograd
 import torch.nn as nn
 
+#pylint: disable=method-hidden
+
 
 class TaskMap(nn.Module):
     """
@@ -18,6 +20,16 @@ class TaskMap(nn.Module):
                  J=None,
                  J_dot=None,
                  device=torch.device('cpu')):
+        """Constructor
+
+        Args:
+            n_inputs (int): The number of inputs.
+            n_outputs (int): tThe number of outputs.
+            psi (Callable): The task map function to convert from C-space to task space.
+            J (Callable, optional): Function to compute jacobian. Defaults to None.
+            J_dot (Callable, optional): Function to compute Jacobian derivative. Defaults to None.
+            device (torch.device, optional): Run on cpu or gpu. Defaults to torch.device('cpu').
+        """
         super(TaskMap, self).__init__()
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
@@ -27,6 +39,7 @@ class TaskMap(nn.Module):
         self.device = device
 
     def J(self, x):
+        """Compute the jacobian of the task map."""
         if self.J_ is not None:
             J = self.J_(x)
             if not self.training:
@@ -63,6 +76,7 @@ class TaskMap(nn.Module):
         return J
 
     def J_dot(self, x, xd):
+        """Compute the first derivative of the Jacobian."""
         if self.J_dot_ is not None:
             Jd = self.J_dot_(x, xd)
             return Jd
@@ -291,7 +305,8 @@ class ComposedTaskMap(TaskMap):
                                               device=device)
         self.taskmaps = taskmaps
         self.device = device
-        self.use_numerical_jacobian = use_numerical_jacobian  # use J/Jd for the entire chain using autodiff
+        # use J/Jd for the entire chain using autodiff
+        self.use_numerical_jacobian = use_numerical_jacobian
 
     def forward(self, x, xd=None, order=2):
         if self.use_numerical_jacobian:  # uses the autodiff version given by taskmap
@@ -302,8 +317,9 @@ class ComposedTaskMap(TaskMap):
         return self.composed_forward(x=x, xd=xd, order=order)
 
     def psi(self, x):
-        for i in range(len(self.taskmaps)):
-            x = self.taskmaps[i].psi(x)
+        """Apply the task map function."""
+        for _, taskmap in enumerate(self.taskmaps):
+            x = taskmap.psi(x)
         return x
 
     def J(self, x):
@@ -312,8 +328,8 @@ class ComposedTaskMap(TaskMap):
 
         n, d = x.size()
         J = torch.eye(d, d, device=self.device).repeat(n, 1, 1)
-        for i in range(len(self.taskmaps)):
-            x, J_i = self.taskmaps(x=x, order=1)
+        for _, taskmap in enumerate(self.taskmaps):
+            x, J_i = taskmap(x=x, order=1)
             J = torch.bmm(J_i, J)
         return J
 
@@ -324,32 +340,34 @@ class ComposedTaskMap(TaskMap):
         n, d = x.size()
         J = torch.eye(d, d, device=self.device).repeat(n, 1, 1)
         Jd = torch.zeros(n, d, d, device=self.device)
-        for i in range(len(self.taskmaps)):
-            x, xd, J_i, Jd_i = self.taskmaps[i](x=x, xd=xd, order=2)
+        for _, taskmap in enumerate(self.taskmaps):
+            x, xd, J_i, Jd_i = taskmap(x=x, xd=xd, order=2)
             Jd = torch.bmm(J_i, Jd) + torch.bmm(Jd_i, J)
             J = torch.bmm(J_i, J)
         return Jd
 
-    # analytically compose taskamps (including the jacobians!)
     def composed_forward(self, x, xd=None, order=2):
+        """Analytically compose taskmaps (including the jacobians!)"""
         n, d = x.size()
         J = torch.eye(d, d, device=self.device).repeat(n, 1, 1)
 
         if order == 1:
-            for i in range(len(self.taskmaps)):
-                x, J_i = self.taskmaps[i](x, order=order)
+            for _, taskmap in enumerate(self.taskmaps):
+                x, J_i = self.taskmap(x, order=order)
                 J = torch.bmm(J_i, J)
             return x, J
 
         Jd = torch.zeros(n, d, d, device=self.device)
-        for i in range(len(self.taskmaps)):
-            x, xd, J_i, Jd_i = self.taskmaps[i](x, xd, order=order)
+        for _, taskmap in enumerate(self.taskmaps):
+            x, xd, J_i, Jd_i = taskmap(x, xd, order=order)
             Jd = torch.bmm(J_i, Jd) + torch.bmm(Jd_i, J)
             J = torch.bmm(J_i, J)
+
         return x, xd, J, Jd
 
     @property
     def taskmaps(self):
+        """Get all the contained task maps"""
         return self.__taskmaps
 
     @taskmaps.setter
@@ -357,23 +375,25 @@ class ComposedTaskMap(TaskMap):
         if taskmaps is None:
             self.__taskmaps = torch.nn.ModuleList()
         else:
-            if type(taskmaps) == list:
+            if isinstance(taskmaps, list):
                 self.__taskmaps = torch.nn.ModuleList(taskmaps)
             else:
                 self.__taskmaps = taskmaps
 
     @property
     def n_inputs(self):
+        """Get the number of inputs to the first taskmap in the chain."""
         return self.taskmaps[0].n_inputs
 
     @n_inputs.setter
     def n_inputs(self, n_inputs):
-        self.__n_inputs = n_inputs
+        self.taskmaps[0].n_inputs = n_inputs
 
     @property
     def n_outputs(self):
+        """Get the number of output values from the last taskmap."""
         return self.taskmaps[-1].n_outputs
 
     @n_outputs.setter
     def n_outputs(self, n_outputs):
-        self.__n_outputs = n_outputs
+        self.taskmaps[-1].n_outputs = n_outputs
