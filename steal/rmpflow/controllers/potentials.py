@@ -94,7 +94,7 @@ class LogCoshPotential(Potential):
         return potential
 
     def grad(self, x):
-        n_dims = q.size()[1]
+        n_dims = x.size()[1]
         x_norm = torch.norm(x, dim=1).repeat(n_dims, 1).t()
         s_alpha = torch.tanh(self.scaling * x_norm)
         x_hat = F.normalize(x)
