@@ -1,8 +1,11 @@
+"""Various PyTorch-compatible datasets for learning"""
+
 import torch
-from torch.utils.data import Dataset, TensorDataset
+from torch.utils.data import Dataset
 
 
 class FirstOrderDynamicsDataset(Dataset):
+    """Dataset containing positions and velocities."""
 
     def __init__(self, x, xd):
         self.x = x
@@ -18,6 +21,7 @@ class FirstOrderDynamicsDataset(Dataset):
 
 
 class SecondOrderDynamicsDataset(Dataset):
+    """Dataset containing positions, velocities and accelerations."""
 
     def __init__(self, x, xd, xdd):
         self.x = x
@@ -36,6 +40,10 @@ class SecondOrderDynamicsDataset(Dataset):
 
 
 class PullbackDataset(Dataset):
+    """
+    Dataset which returns the data after applying
+    the pullback operation on the original manifold.
+    """
 
     def __init__(self,
                  q,
@@ -89,6 +97,8 @@ class PullbackDataset(Dataset):
 
 
 class ContextDataset(Dataset):
+    """Dataset which returns the full context including
+    jacobians, forces and metric values."""
 
     def __init__(self, q_config, qd_config, qdd_config, q_leaf_list,
                  qd_leaf_list, J_list, Jd_list, force_list, metric_list):
@@ -120,6 +130,8 @@ class ContextDataset(Dataset):
 
 
 class ContextMomentumDataset(Dataset):
+    """Dataset which returns the full context including
+    jacobians, momentum and metric values."""
 
     def __init__(self, q_config, qd_config, q_leaf_list, J_list, momentum_list,
                  metric_list):

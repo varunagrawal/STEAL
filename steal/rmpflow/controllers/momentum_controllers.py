@@ -5,9 +5,9 @@ from steal.rmpflow.rmp_tree import Rmp
 
 
 class NaturalGradientDescentMomentumController(Rmp):
-    '''
+    """
     A first-order system based on natural gradient descent
-    '''
+    """
 
     def __init__(self,
                  G,
@@ -15,8 +15,7 @@ class NaturalGradientDescentMomentumController(Rmp):
                  del_Phi=None,
                  return_natural=True,
                  device=torch.device('cpu')):
-        super(NaturalGradientDescentMomentumController,
-              self).__init__(return_natural=return_natural)
+        super().__init__(return_natural=return_natural)
         self.G = G
         self.Phi = Phi
         self.del_Phi = del_Phi
