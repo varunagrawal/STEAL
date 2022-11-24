@@ -1,21 +1,35 @@
+"""Module for Riemannian metrics."""
+
 import torch
 
 
 # TODO: convert these to nn.Module
 class Metric(object):
+    """Riemannian metric base class"""
+
+    def __init__(self, device=torch.device('cpu')):
+        self.device = device
 
     def __call__(self, q, qd):
         pass
 
     def load_state_dict(self, filename):
-        pass
+        """Load state dict from `filename`."""
+
+    def to(self, device):
+        """Move to `device`, e.g. GPU."""
+        self.device = device
 
 
 class IdentityMetric(Metric):
+    """
+    Metric which is a simply identity.
+    The quadratic will be an inner product.
+    """
 
     def __init__(self, scaling=1., device=torch.device('cpu')):
+        super().__init__(device)
         self.scaling = scaling
-        self.device = device
 
     def __call__(self, q, qd=None):
         n, d = q.size()
@@ -23,27 +37,24 @@ class IdentityMetric(Metric):
                                                          1) * self.scaling
         return metric
 
-    def to(self, device):
-        self.device = device
-
 
 class StretchMetric(Metric):
-
+    """Metric that stretches in the first dimension."""
     def __init__(self,
                  rotation_matrix,
                  sigma=0.5,
                  scale=0.5,
                  device=torch.device('cpu')):
+        super().__init__(device)
         self.n_dims = rotation_matrix.size()[0]
         self.sigma = sigma
         self.scale = scale
-        self.device = device
         self.rotation_matrix = rotation_matrix.to(device=self.device)
 
     def __call__(self, q, qd=None):
-        assert q.size()[1] == self.n_dims
+        assert q.size(1) == self.n_dims
 
-        n_samples = q.size()[0]
+        n_samples = q.size(0)
 
         q_norm = q.norm(dim=1)
         # s = torch.tanh(q_norm / sigma) * scale
@@ -56,10 +67,8 @@ class StretchMetric(Metric):
                               self.rotation_matrix)
         return metric
 
-    def to(self, device):
-        self.device = device
-
     def set_parameters(self, rotation_matrix=None, scale=None, sigma=None):
+        """Set metric parameters."""
         if rotation_matrix is not None:
             self.rotation_matrix = rotation_matrix.to(self.device)
         if scale is not None:
@@ -69,16 +78,17 @@ class StretchMetric(Metric):
 
 
 class OuterProductMetric(Metric):
-
+    """Outer product of position on the 2nd axis."""
     def __init__(self,
                  n_dims,
                  inner_product_gain=0.5,
                  bias=0.1,
                  device=torch.device('cpu')):
+        super().__init__(device)
+
         self.n_dims = n_dims
         self.inner_product_gain = inner_product_gain
         self.bias = bias
-        self.device = device
 
     def __call__(self, q, qd=None):
         if q.dim() == 1:
@@ -94,10 +104,8 @@ class OuterProductMetric(Metric):
            self.inner_product_gain * torch.einsum('bi,bj->bij', q, q)
         return metric
 
-    def to(self, device):
-        self.device = device
-
     def set_parameters(self, inner_product_gain=None, bias=None):
+        """Set metric parameters."""
         if inner_product_gain is not None:
             self.inner_product_gain = inner_product_gain
         if bias is not None:
@@ -105,19 +113,20 @@ class OuterProductMetric(Metric):
 
 
 class ScaledUniformMetric(Metric):
-    '''
-	Metric that is scaled with a position-varying weight function
-	'''
+    """
+    Metric that is scaled with a position-varying weight function
+    """
 
     def __init__(self,
                  w_u=10.0,
                  w_l=1.0,
                  sigma=1.0,
                  device=torch.device('cpu')):
+        super().__init__(device)
+
         self.w_u_ = w_u
         self.w_l_ = w_l
         self.sigma_ = sigma
-        self.device = device
 
     def __call__(self, x, xd=None):
         n, d = x.shape
@@ -133,9 +142,9 @@ class ScaledUniformMetric(Metric):
 
 
 class DirectionallyStretchedMetric(Metric):
-    '''
-	Metric that stretches in the direction of the goal
-	'''
+    """
+    Metric that stretches in the direction of the goal
+    """
 
     def __init__(self,
                  w_u=10.0,
@@ -148,6 +157,8 @@ class DirectionallyStretchedMetric(Metric):
                  dist_alpha=10.,
                  isotropic_mass=0.0075,
                  device=torch.device('cpu')):
+        super().__init__(device)
+
         self.w_u = w_u
         self.w_l = w_l
         self.sigma_gamma = sigma_gamma
@@ -157,12 +168,11 @@ class DirectionallyStretchedMetric(Metric):
         self.dist_offset = dist_offset
         self.dist_alpha = dist_alpha
         self.isotropic_mass = isotropic_mass
-        self.device = device
 
     def __call__(self, x, xd=None):
         n, d = x.shape
         x_norm = torch.norm(x, dim=1).reshape(-1, 1)
-        s = torch.tanh(self.alpha_softmax * x_norm)
+        # s = torch.tanh(self.alpha_softmax * x_norm)
         x_hat = x / (x_norm + self.eps)
         # n = s * x_hat
         # S = np.dot(n, n.T) # NOTE: not really sure what this is adding
@@ -172,7 +182,8 @@ class DirectionallyStretchedMetric(Metric):
         # gamma = 1./cosh_(x_norm * self.sigma_gamma) ** 2
         # alpha = 1./cosh_(x_norm * self.sigma_alpha) ** 2
 
-        # min_weight sets some isotropic mass which provides inertia against movement in the nullspace
+        # min_weight sets some isotropic mass which provides
+        # inertia against movement in the nullspace
         # of S, the anisotropic component
         min_weight = self.isotropic_mass
         max_weight = 1. - min_weight
@@ -191,17 +202,18 @@ class DirectionallyStretchedMetric(Metric):
 
 
 class BarrierWithVelocityToggleMetric(Metric):
-    '''
-	Barrier metric that turns off when velocity is negative (on 1D task space)
-	'''
+    """
+    Barrier metric that turns off when velocity is negative (on 1D task space)
+    """
 
     def __init__(self,
                  epsilon=1e-3,
                  slope_order=4,
                  device=torch.device('cpu')):
+        super().__init__(device)
+
         self.epsilon = epsilon
         self.slope_order = slope_order
-        self.device = device
 
     def __call__(self, x, xd):
         w = self.barrier_scalar(x)
@@ -210,6 +222,7 @@ class BarrierWithVelocityToggleMetric(Metric):
         return G.unsqueeze(2)
 
     def barrier_scalar(self, x):
+        """Compute the scalar used in the barrier function"""
         w = 1. / x**self.slope_order
         w[x <= 0.] = 1e15
         return w
@@ -218,24 +231,22 @@ class BarrierWithVelocityToggleMetric(Metric):
         u = epsilon + torch.min(xd, torch.tensor(0., device=self.device)) * xd
         return u
 
-    def to(self, device):
-        self.device = device
-
 
 class BarrierWithVelocityToggleSoftMetric(Metric):
-    '''
-	Barrier metric that turns off when velocity is negative (on 1D task space)
-	'''
+    """
+    Barrier metric that turns off when velocity is negative (on 1D task space)
+    """
 
     def __init__(self,
                  epsilon=1e-3,
                  slope_order=4,
                  alpha=10.,
                  device=torch.device('cpu')):
+        super().__init__(device)
+
         self.epsilon = epsilon
         self.slope_order = slope_order
         self.alpha = alpha
-        self.device = device
 
     def __call__(self, x, xd):
         w = self.barrier_scalar(x)
@@ -258,16 +269,17 @@ class BarrierWithVelocityToggleSoftMetric(Metric):
 
 
 class BarrierMetric(Metric):
-    '''
-	Barrier Metric on 1D task space
-	'''
+    """
+    Barrier Metric on 1D task space
+    """
 
     def __init__(self,
                  epsilon=0.2,
                  slope_order=1,
                  scale=1.,
                  device=torch.device('cpu')):
-        self.device = device
+        super().__init__(device)
+
         self.epsilon = epsilon
         self.slope_order = slope_order
         self.scale = scale

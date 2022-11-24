@@ -5,7 +5,7 @@ from steal.rmpflow.rmp_tree import Rmp
 
 
 class NaturalGradientDescentForceController(Rmp):
-
+    """Geometric dynamical system (GDS)"""
     def __init__(self,
                  G,
                  B,
@@ -14,8 +14,7 @@ class NaturalGradientDescentForceController(Rmp):
                  ds_type='gds',
                  return_natural=True,
                  device=torch.device('cpu')):
-        '''
-        Geometric dynamical system (GDS)
+        """
         :param G: Riemennaian metric (D x D array function )
         :param B: Damping matrix (D x D array function)
         :param Phi: Potential function (1x1 array function)
@@ -23,10 +22,9 @@ class NaturalGradientDescentForceController(Rmp):
         :param Xi: Curvature mass (DxD array function)
         :param xi: Curvature force (Dx1 array function)
         :param ds_type: Dynamical system type ('gds' (default) or 'lds')
-        '''
+        """
 
-        super(NaturalGradientDescentForceController,
-              self).__init__(return_natural=return_natural)
+        super().__init__(return_natural=return_natural)
 
         self.G = G
         self.B = B
@@ -67,6 +65,7 @@ class NaturalGradientDescentForceController(Rmp):
         return f, M
 
     def potential_gradient(self, x):
+        """Compute gradient of the potential ∇Φ"""
         n, d = x.size()
         x.requires_grad_(True)
         Phi = self.Phi(x).reshape(-1, 1)
@@ -79,10 +78,12 @@ class NaturalGradientDescentForceController(Rmp):
 
         # TODO: Not sure if setting require_grad to False for input effects the graph
         x.requires_grad_(False)
-        # torchviz.make_dot(dPhi).view()
         return dPhi
 
     def find_curvature_terms(self, x, xd):
+        """
+        Get the curvature terms using the Riemannian metric.
+        """
         n, d = x.size()
         x_m = x.repeat(d**2, 1)
         x_m.requires_grad_(True)
@@ -138,7 +139,7 @@ class NaturalGradientDescentForceController(Rmp):
 # -----------------------------------------------
 # class LagrangianDynamicalSystem(Rmp):
 #     def __init__(self, n_dim, G, B, Phi=None, del_Phi=None):
-#         '''
+#         """
 #         Geometric dynamical system (GDS)
 #         :param dof: no of dims of the configuration space
 #         :param G: Riemennaian metric (D x D array function )
@@ -147,7 +148,7 @@ class NaturalGradientDescentForceController(Rmp):
 #         :param del_Phi: Derivative Potential function (Dx1 array function)
 #         :param Xi: Curvature mass (DxD array function)
 #         :param xi: Curvature force (Dx1 array function)
-#         '''
+#         """
 #
 #         super(LagrangianDynamicalSystem, self).__init__()
 #
@@ -166,7 +167,8 @@ class NaturalGradientDescentForceController(Rmp):
 #
 #         if self.del_Phi is None:
 #             print('Using numerical del_Phi')
-#             assert self.Phi is not None, ValueError('Phi has to be specified if del_Phi isnt available')
+#             assert self.Phi is not None, \
+    #           ValueError('Phi has to be specified if del_Phi isnt available')
 #             self.del_Phi = self.potential_gradient
 #
 #     def forward(self, t, x, xd):
@@ -233,14 +235,3 @@ class NaturalGradientDescentForceController(Rmp):
 #             xi = torch.zeros_like(x)
 #
 #         return Xi, xi
-
-# -----------------------------------------------
-if __name__ == '__main__':
-    d = 2
-    G = lambda x, xd: torch.einsum('bi,bj->bij', x, x * xd)
-    B = torch.zeros(d, d)
-    Phi = lambda x: (0.5 * torch.norm(x, dim=1)**2).reshape(-1, 1)
-    gds = NaturalGradientDescentForceController(G=G, B=B, Phi=Phi)
-    x = torch.ones(2, d)
-    xd = torch.ones(2, d)
-    f, M = gds(x, xd)

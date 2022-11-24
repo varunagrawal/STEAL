@@ -4,6 +4,7 @@ import torch
 
 from steal.rmpflow.kinematics.taskmaps import TaskMap
 
+#pylint: disable=method-hidden
 
 def get_distance_taskmap(type='sphere', **kwargs):
     if type == 'sphere':
@@ -139,8 +140,8 @@ class CylinderDistanceTaskMap(TaskMap):
             return PointLineSegmentDistance(self.x1, self.x2, x) - self.radius
 
         # def J(x):
-        # 	_, alpha = PointLineSegmentDistance(self.x1, self.x2, x, get_alpha_ret=True)
-        # 	return torch.nn.functional.normalize(x - ((1. - alpha) * self.x1 + alpha * self.x2)).unsqueeze(2)
+        #     _, alpha = PointLineSegmentDistance(self.x1, self.x2, x, get_alpha_ret=True)
+        #     return torch.nn.functional.normalize(x - ((1. - alpha) * self.x1 + alpha * self.x2)).unsqueeze(2)
 
         super(CylinderDistanceTaskMap, self).__init__(n_inputs=D,
                                                       n_outputs=1,

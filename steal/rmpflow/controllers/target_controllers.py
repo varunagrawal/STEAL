@@ -5,9 +5,9 @@ from .potentials import *
 
 
 class TargetForceControllerUniform(NaturalGradientDescentForceController):
-    '''
-	Target controller with uniform metric and soft-norm type potential
-	'''
+    """
+    Target controller with uniform metric and soft-norm type potential
+    """
 
     def __init__(self,
                  damping_gain=2.0,
@@ -172,30 +172,30 @@ class TargetMomentumControllerStretched(
 # -------------------------------------------
 #
 # class TrajectoryTrackingTimeDependentController(nn.Module):
-# 	def __init__(self, x_traj, xd_traj, dt, kp=4., kd=1.):
-# 		self.x_traj = x_traj   # list of positions dt spaced in time
-# 		self.xd_traj = xd_traj # list of velocities dt spaced in time
-# 		self.kp = kp
-# 		self.kd = kd
-# 		self.dt = dt
-# 		super(TrajectoryTrackingTimeDependentController, self).__init__()
+#     def __init__(self, x_traj, xd_traj, dt, kp=4., kd=1.):
+#         self.x_traj = x_traj   # list of positions dt spaced in time
+#         self.xd_traj = xd_traj # list of velocities dt spaced in time
+#         self.kp = kp
+#         self.kd = kd
+#         self.dt = dt
+#         super(TrajectoryTrackingTimeDependentController, self).__init__()
 #
-# 	def forward(self, t, x):
-# 		# assuming robot starts from zero velocity!
-# 		idx = np.round(t / self.dt).astype(int)
-# 		xdd = -self.kp*(x-self.x_traj[idx]) -self.kd*(0.0 - self.xd_traj[idx])
-# 		return xdd
+#     def forward(self, t, x):
+#         # assuming robot starts from zero velocity!
+#         idx = np.round(t / self.dt).astype(int)
+#         xdd = -self.kp*(x-self.x_traj[idx]) -self.kd*(0.0 - self.xd_traj[idx])
+#         return xdd
 #
 #
 # class TimeWrapperNet(nn.Module):
-# 	def __init__(self, net):
-# 		super(TimeWrapperNet, self).__init__()
-# 		self.net = net
+#     def __init__(self, net):
+#         super(TimeWrapperNet, self).__init__()
+#         self.net = net
 #
-# 	def forward(self, t, x):
-# 		if isinstance(x, torch.Tensor):
-# 			return self.net(x)
-# 		elif isinstance(x, dict):
-# 			return self.net(**x)
-# 		else:
-# 			raise ValueError
+#     def forward(self, t, x):
+#         if isinstance(x, torch.Tensor):
+#             return self.net(x)
+#         elif isinstance(x, dict):
+#             return self.net(**x)
+#         else:
+#             raise ValueError
