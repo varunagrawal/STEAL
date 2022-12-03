@@ -6,7 +6,9 @@ from steal.rmpflow.kinematics.taskmaps import TaskMap
 
 #pylint: disable=method-hidden
 
+
 def get_distance_taskmap(type='sphere', **kwargs):
+    """Depending on type, get the distance taskmap."""
     if type == 'sphere':
         return SphereDistanceTaskMap(**kwargs)
     elif type == 'point':
@@ -77,10 +79,15 @@ class PointDistanceTaskMap(TaskMap):
         else:
             self.center = center.to(device=self.device,
                                     dtype=torch.get_default_dtype())
-        psi = lambda x: 0.5 * torch.norm(x - self.center, dim=1).reshape(
-            -1, 1)**2
-        J = lambda x: (x - self.center).unsqueeze(1)
-        J_dot = lambda x, xd: xd.unsqueeze(1)
+
+        def psi(x):
+            return 0.5 * torch.norm(x - self.center, dim=1).reshape(-1, 1)**2
+
+        def J(x):
+            return (x - self.center).unsqueeze(1)
+
+        def J_dot(x, xd):
+            return xd.unsqueeze(1)
 
         super(PointDistanceTaskMap, self).__init__(n_inputs=self.n_inputs,
                                                    n_outputs=1,
