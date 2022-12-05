@@ -353,7 +353,7 @@ class ComposedTaskMap(TaskMap):
 
         if order == 1:
             for _, taskmap in enumerate(self.taskmaps):
-                x, J_i = self.taskmap(x, order=order)
+                x, J_i = taskmap(x, order=order)
                 J = torch.bmm(J_i, J)
             return x, J
 
@@ -387,7 +387,8 @@ class ComposedTaskMap(TaskMap):
 
     @n_inputs.setter
     def n_inputs(self, n_inputs):
-        self.taskmaps[0].n_inputs = n_inputs
+        """Set dummy variable since we don't want to update the task_map n_inputs."""
+        self.__n_inputs = n_inputs
 
     @property
     def n_outputs(self):
@@ -396,4 +397,5 @@ class ComposedTaskMap(TaskMap):
 
     @n_outputs.setter
     def n_outputs(self, n_outputs):
-        self.taskmaps[-1].n_outputs = n_outputs
+        """Set dummy variable since we don't want to update the task_map n_outputs."""
+        self.__n_outputs = n_outputs
