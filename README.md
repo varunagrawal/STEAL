@@ -6,8 +6,15 @@ Simultaneous Trajectory Estimation and Learning
 ```
 pip install poetry
 poetry install
-poetry run pip install -U torch gpytorch
+
+# For Linux/Windows/Intel Macs
+poetry run pip install -U torch gpytorch pytorch-lightning
+
+# For Apple Silicon
+poetry run pip install --pre torch --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+poetry run pip install -U gpytorch pytorch-lightning
 ```
+
 ## Datasets
 
 - [LASA Dataset](https://cs.stanford.edu/people/khansari/download.html)
