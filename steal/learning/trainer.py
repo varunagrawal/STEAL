@@ -98,7 +98,7 @@ class LatentTaskMapNetwork(Diffeomorphism):
                          params)
 
         # Train only the network specified by `index`.
-        self.model = self.lagrangian_vel_nets[index]
+        self.model = self.lagrangian_vel_nets[index + 1]
 
         self.loss = nn.SmoothL1Loss()
 
