@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.utils.data import ConcatDataset, DataLoader, TensorDataset
 
 from steal.datasets import (ContextMomentumDataset, find_mean_goal, lasa,
@@ -231,33 +232,24 @@ def get_flow_params(link_names, dataset_list, robot, joint_traj_list):
     return scaling_list, translation_list, leaf_goals
 
 
-def get_models(workspace_dims, cspace_dim, link_names, scalings, translations,
-               leaf_goals, params):
+def get_task_space_models(workspace_dims, link_names, scalings, translations,
+                          leaf_goals, params):
     """
     Get the latent task space model for all the leaves 
     and the model which predicts the momentum for
     all the RMP leaf nodes together.
     """
 
-    latent_models = [None]
-    for index, _ in enumerate(link_names):
-        rmp_leaf = LatentTaskMapNetwork(index=index,
-                                        n_dim=workspace_dims,
-                                        link_names=link_names,
-                                        scalings=scalings,
-                                        translations=translations,
-                                        leaf_goals=leaf_goals,
+    lagrangian_vel_nets = [None]
+    for index, link_name in enumerate(link_names):
+        rmp_leaf = LatentTaskMapNetwork(n_dims=workspace_dims,
+                                        link_name=link_name,
+                                        scaling=scalings[index],
+                                        translation=translations[index],
+                                        leaf_goal=leaf_goals[index],
                                         params=params)
-        latent_models.append(rmp_leaf)
-
-    context_model = ContextMomentumNetwork(n_dim=workspace_dims,
-                                           cspace_dim=cspace_dim,
-                                           link_names=link_names,
-                                           scalings=scalings,
-                                           translations=translations,
-                                           leaf_goals=leaf_goals,
-                                           params=params)
-    return latent_models, context_model
+        lagrangian_vel_nets.append(rmp_leaf)
+    return lagrangian_vel_nets
 
 
 def train_independent(model: LatentTaskMapNetwork, train_loader: DataLoader,
@@ -267,16 +259,28 @@ def train_independent(model: LatentTaskMapNetwork, train_loader: DataLoader,
     """
     print('Training taskmaps only! Using identity latent space metric!')
     model.set_return_natural(False)
-    trainer = pl.Trainer(max_epochs=max_epochs, log_every_n_steps=1)
+
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=f"checkpoints/{model.leaf_rmp.name}")
+
+    trainer = pl.Trainer(max_epochs=max_epochs,
+                         log_every_n_steps=1,
+                         callbacks=[checkpoint_callback])
     trainer.fit(model=model, train_dataloaders=train_loader)
+
     model.set_return_natural(True)
     return trainer.model
 
 
-def train_combined(model: ContextMomentumNetwork, train_loader: DataLoader,
-                   max_epochs):
+def train_combined(lagrangian_vel_nets: list[LatentTaskMapNetwork],
+                   train_loader: DataLoader, max_epochs, cspace_dim):
     """Train the Riemannian metrics now that the taskmaps have been learned."""
     print('Training metrics only!')
+
+    model = ContextMomentumNetwork(lagrangian_vel_nets=lagrangian_vel_nets,
+                                   n_dims=cspace_dim,
+                                   scalings=[1.] * len(lagrangian_vel_nets))
+
     trainer = pl.Trainer(max_epochs=max_epochs, log_every_n_steps=1)
     trainer.fit(model=model, train_dataloaders=train_loader)
     return trainer.model
@@ -317,14 +321,14 @@ def main():
     scalings, translations, leaf_goals = get_flow_params(
         link_names, dataset_list, robot, joint_traj_list)
 
-    task_map_nets, context_net = get_models(params.workspace_dim, cspace_dim,
-                                            link_names, scalings, translations,
-                                            leaf_goals, params)
+    task_map_nets = get_task_space_models(params.workspace_dim, link_names,
+                                          scalings, translations, leaf_goals,
+                                          params)
 
     max_epochs = 5
 
     for n, link_name in enumerate(link_names):
-        print(f"Training Flow for {link_name}")
+        print(f"\n\n----- Training Flow for {link_name}")
         x_train = torch.cat(
             [dataset.q_leaf_list[n + 1] for dataset in dataset_list], dim=0)
         J_train = torch.cat(
@@ -353,19 +357,20 @@ def main():
         if net is None:
             lagrangian_vel_nets.append(None)
         else:
-            lagrangian_vel_nets.append(net.model)
+            lagrangian_vel_nets.append(net.leaf_rmp)
 
-    context_net.load_models(lagrangian_vel_nets)
     train_loader = DataLoader(train_dataset,
                               num_workers=8,
                               batch_size=len(train_dataset),
                               persistent_workers=True,
                               pin_memory=True)
-    context_net = train_combined(context_net,
+    context_net = train_combined(lagrangian_vel_nets=lagrangian_vel_nets,
                                  train_loader=train_loader,
-                                 max_epochs=max_epochs)
+                                 max_epochs=max_epochs,
+                                 cspace_dim=cspace_dim)
 
     print("Training complete!")
+
 
 if __name__ == "__main__":
     main()
