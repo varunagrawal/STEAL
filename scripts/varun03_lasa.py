@@ -275,6 +275,7 @@ def train_independent(model: LatentTaskMapNetwork, train_loader: DataLoader,
 
 def train_combined(model: ContextMomentumNetwork, train_loader: DataLoader,
                    max_epochs):
+    """Train the Riemannian metrics now that the taskmaps have been learned."""
     print('Training metrics only!')
     trainer = pl.Trainer(max_epochs=max_epochs, log_every_n_steps=1)
     trainer.fit(model=model, train_dataloaders=train_loader)
@@ -316,11 +317,11 @@ def main():
     scalings, translations, leaf_goals = get_flow_params(
         link_names, dataset_list, robot, joint_traj_list)
 
-    lagrangian_nets, context_net = get_models(params.workspace_dim, cspace_dim,
-                                              link_names, scalings,
-                                              translations, leaf_goals, params)
+    task_map_nets, context_net = get_models(params.workspace_dim, cspace_dim,
+                                            link_names, scalings, translations,
+                                            leaf_goals, params)
 
-    max_epochs = 500
+    max_epochs = 5
 
     for n, link_name in enumerate(link_names):
         print(f"Training Flow for {link_name}")
@@ -340,23 +341,31 @@ def main():
                                   persistent_workers=True,
                                   pin_memory=True)
 
-        leaf_rmp = lagrangian_nets[n + 1]
+        leaf_rmp = task_map_nets[n + 1]
         trained_model = train_independent(leaf_rmp,
                                           train_loader,
                                           max_epochs=max_epochs)
 
-        lagrangian_nets[n + 1] = trained_model
+        task_map_nets[n + 1] = trained_model
 
-    # rmp_nodes = []
-    # for index, link_name in enumerate(link_names):
-    #     leaf_rmp = get_latent_task_space_model(index, workspace_dims,
-    #                                            link_names, dataset_list,
-    #                                            leaf_goals, params)
+    lagrangian_vel_nets = []
+    for net in task_map_nets:
+        if net is None:
+            lagrangian_vel_nets.append(None)
+        else:
+            lagrangian_vel_nets.append(net.model)
 
-    #     leaf_rmp = train_independent(leaf_rmp, train_loader, max_epochs)
+    context_net.load_models(lagrangian_vel_nets)
+    train_loader = DataLoader(train_dataset,
+                              num_workers=8,
+                              batch_size=len(train_dataset),
+                              persistent_workers=True,
+                              pin_memory=True)
+    context_net = train_combined(context_net,
+                                 train_loader=train_loader,
+                                 max_epochs=max_epochs)
 
-    #     rmp_nodes.append(leaf_rmp)
-
+    print("Training complete!")
 
 if __name__ == "__main__":
     main()
