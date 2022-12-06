@@ -38,7 +38,7 @@ class Diffeomorphism(pl.LightningModule):
         # We don't need a network for the robot base, hence None.
         lagrangian_vel_nets = [None]
 
-        for n, _ in enumerate(self.link_names):
+        for n, link_name in enumerate(self.link_names):
             scaling = scalings[n]
             translation = translations[n]
             leaf_goal = leaf_goals[n]
@@ -68,6 +68,7 @@ class Diffeomorphism(pl.LightningModule):
                 G=latent_metric_fn, del_Phi=latent_potential_fn.grad)
 
             leaf_rmp = RmpTreeNode(n_dim=workspace_dims,
+                                   name=link_name,
                                    order=params.rmp_order,
                                    return_natural=True)
 
@@ -173,7 +174,8 @@ class ContextMomentumNetwork(Diffeomorphism):
     def load_models(self, lagrangian_vel_nets):
         """Load pretrained Lagrangian Velocity Networks."""
         self.lagrangian_vel_nets = lagrangian_vel_nets
-        self.model.lagrangian_vel_nets = lagrangian_vel_nets
+        self.model.lagrangian_vel_nets = nn.ModuleList(
+            [net for net in lagrangian_vel_nets])
 
     def training_step(self, batch):
         """
