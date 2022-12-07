@@ -1,19 +1,22 @@
 """Utilities to help in training."""
 
+import copy
 import os
 import time
 from itertools import chain
 
+import pytorch_lightning as pl
 import torch
+from pytorch_lightning.callbacks import ModelCheckpoint
 from torch import nn, optim
-from torch.utils.data import TensorDataset
+from torch.utils.data import DataLoader, TensorDataset
 
 from steal.datasets import find_mean_goal
-from steal.learning import (ContextMomentumNet, EuclideanizingFlow,
-                            LagrangianMomentumLoss, LogCoshPotential,
+from steal.learning import (ContextMomentumNet, ContextMomentumNetwork,
+                            EuclideanizingFlow, LagrangianMomentumLoss,
+                            LatentTaskMapNetwork, LogCoshPotential,
                             MetricCholNet,
                             NaturalGradientDescentMomentumController)
-from steal.learning.train_utils import train
 from steal.rmpflow import RmpTreeNode
 
 
@@ -119,7 +122,7 @@ def get_flow_params(link_names, dataset_list, robot, joint_traj_list):
 
 
 def get_task_space_models(link_names, scalings, translations, leaf_goals,
-                          params):
+                          params) -> list[RmpTreeNode]:
     """
     Get the latent task space model for all the leaves 
     and the model which predicts the momentum for
@@ -164,6 +167,139 @@ def get_task_space_models(link_names, scalings, translations, leaf_goals,
         lagrangian_vel_nets.append(leaf_rmp)
 
     return lagrangian_vel_nets
+
+
+def train(model,
+          loss_fn,
+          opt,
+          train_dataset,
+          n_epochs=500,
+          batch_size=None,
+          shuffle=True,
+          clip_gradient=True,
+          clip_value_grad=0.1,
+          clip_weight=False,
+          clip_value_weight=2,
+          log_freq=5,
+          logger=None,
+          loss_clip=1e3,
+          stop_threshold=float('inf')):
+    '''
+    train the torch model with the given parameters
+    :param model (torch.nn.Module): the model to be trained
+    :param loss_fn (callable): loss = loss_fn(y_pred, y_target)
+    :param opt (torch.optim): optimizer
+    :param x_train (torch.Tensor): training data (position/position + velocity)
+    :param y_train (torch.Tensor): training label (velocity/control)
+    :param n_epochs (int): number of epochs
+    :param batch_size (int): size of minibatch, if None, train in batch
+    :param shuffle (bool): whether the dataset is reshuffled at every epoch
+    :param clip_gradient (bool): whether the gradients are clipped
+    :param clip_value_grad (float): the threshold for gradient clipping
+    :param clip_weight (bool): whether the weights are clipped (not implemented)
+    :param clip_value_weight (float): the threshold for weight clipping (not implemented)
+    :param log_freq (int): the frequency for printing loss and saving results on tensorboard
+    :param logger: the tensorboard logger
+    :return: None
+    '''
+
+    # if batch_size is None, train in batch
+    n_samples = len(train_dataset)
+    if batch_size is None:
+        train_loader = DataLoader(dataset=train_dataset,
+                                  batch_size=n_samples,
+                                  shuffle=shuffle)
+        batch_size = n_samples
+    else:
+        train_loader = DataLoader(dataset=train_dataset,
+                                  batch_size=batch_size,
+                                  shuffle=shuffle)
+
+    # record time elasped
+    ts = time.time()
+
+    if hasattr(loss_fn, 'reduction'):
+        if loss_fn.reduction == 'mean':
+            mean_flag = True
+        else:
+            mean_flag = False
+    else:
+        mean_flag = True  # takes the mean by default
+
+    best_train_loss = float('inf')
+    best_train_epoch = 0
+    best_model = model
+
+    # train the model
+    model.train()
+    for epoch in range(n_epochs):
+        # iterate over minibatches
+        train_loss = 0.
+        for x_batch, y_batch in train_loader:
+            # forward pass
+            if isinstance(x_batch, torch.Tensor):
+                y_pred = model(x_batch)
+            elif isinstance(x_batch, dict):
+                y_pred = model(**x_batch)
+            else:
+                raise ValueError
+            # compute loss
+            loss = loss_fn(y_pred, y_batch)
+            train_loss += loss.item()
+
+            if loss > loss_clip:
+                print('loss too large, skip')
+                continue
+
+            # backward pass
+            opt.zero_grad()
+            loss.backward()
+
+            # clip gradient based on norm
+            if clip_gradient:
+                # torch.nn.utils.clip_grad_value_(
+                #     model.parameters(),
+                #     clip_value_grad
+                # )
+                torch.nn.utils.clip_grad_norm_(model.parameters(),
+                                               clip_value_grad)
+            # update parameters
+            opt.step()
+
+        if mean_flag:  # fix for taking mean over all data instead of mini batch!
+            train_loss = float(batch_size) / float(n_samples) * train_loss
+
+        if epoch - best_train_epoch >= stop_threshold:
+            break
+
+        if train_loss < best_train_loss:
+            best_train_epoch = epoch
+            best_train_loss = train_loss
+            best_model = copy.deepcopy(model)
+
+        # report loss in command line and tensorboard every log_freq epochs
+        if epoch % log_freq == (log_freq - 1):
+            print(
+                '    Epoch [{}/{}]: current loss is {}, time elapsed {} second'
+                .format(epoch + 1, n_epochs, train_loss,
+                        time.time() - ts))
+
+            if logger is not None:
+                info = {'Training Loss': train_loss}
+
+                # log scalar values (scalar summary)
+                for tag, value in info.items():
+                    logger.scalar_summary(tag, value, epoch + 1)
+
+                # log values and gradients of the parameters (histogram summary)
+                for tag, value in model.named_parameters():
+                    tag = tag.replace('.', '/')
+                    logger.histo_summary(tag,
+                                         value.data.cpu().numpy(), epoch + 1)
+                    logger.histo_summary(tag + '/grad',
+                                         value.grad.data.cpu().numpy(),
+                                         epoch + 1)
+    return best_model, best_train_loss
 
 
 def train_combined(lagrangian_nets, dataset, link_names, cspace_dim, params,
@@ -251,3 +387,61 @@ def train_independent(lagrangian_nets, link_names, dataset_list, params):
         leaf_rmp.return_natural = True
 
     return best_model, best_traj_loss
+
+
+def train_independent2(task_map_nets: list[LatentTaskMapNetwork], link_names,
+                       dataset_list, params):
+    """
+    The metric is kept fixed (identity) while the taskmap is learned!
+    """
+    print('Training taskmaps only! Using identity latent space metric!')
+    for n, link_name in enumerate(link_names):
+        print(f"\n\n----- Training Flow for {link_name}")
+        x_train = torch.cat(
+            [dataset.q_leaf_list[n + 1] for dataset in dataset_list], dim=0)
+        J_train = torch.cat(
+            [dataset.J_list[n + 1] for dataset in dataset_list], dim=0)
+        qd_train = torch.cat([dataset_.qd_config for dataset_ in dataset_list],
+                             dim=0)
+        xd_train = torch.bmm(qd_train.unsqueeze(1),
+                             J_train.permute(0, 2, 1)).squeeze(1)
+        leaf_dataset = TensorDataset(x_train, xd_train)
+
+        train_loader = DataLoader(leaf_dataset,
+                                  num_workers=8,
+                                  batch_size=len(leaf_dataset),
+                                  persistent_workers=True,
+                                  pin_memory=True)
+
+        model = task_map_nets[n + 1]
+
+        model.set_return_natural(False)
+
+        checkpoint_callback = ModelCheckpoint(
+            dirpath=f"checkpoints/{model.leaf_rmp.name}")
+
+        trainer = pl.Trainer(max_epochs=params.n_epochs,
+                             log_every_n_steps=1,
+                             callbacks=[checkpoint_callback])
+        trainer.fit(model=model, train_dataloaders=train_loader)
+
+        model.set_return_natural(True)
+
+        task_map_nets[n + 1] = trainer.model
+
+    return task_map_nets
+
+
+def train_combined2(lagrangian_vel_nets: list[LatentTaskMapNetwork],
+                    train_loader: DataLoader, max_epochs,
+                    cspace_dim) -> ContextMomentumNetwork:
+    """Train the Riemannian metrics now that the taskmaps have been learned."""
+    print('Training metrics only!')
+
+    model = ContextMomentumNetwork(lagrangian_vel_nets=lagrangian_vel_nets,
+                                   n_dims=cspace_dim,
+                                   scalings=[1.] * len(lagrangian_vel_nets))
+
+    trainer = pl.Trainer(max_epochs=max_epochs, log_every_n_steps=1)
+    trainer.fit(model=model, train_dataloaders=train_loader)
+    return trainer.model

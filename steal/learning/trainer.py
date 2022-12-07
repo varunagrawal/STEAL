@@ -83,6 +83,7 @@ class LatentTaskMapNetwork(pl.LightningModule):
     def training_step(self, batch):
         x, y = batch
         # forward pass
+        # y_pred = self.leaf_rmp(x)
         y_pred, _ = self.leaf_rmp(x)
         # compute loss
         loss = self.loss(y_pred, y)
@@ -126,7 +127,7 @@ class ContextMomentumNetwork(pl.LightningModule):
     """
 
     def __init__(self,
-                 lagrangian_vel_nets,
+                 lagrangian_vel_nets: list[RmpTreeNode],
                  n_dims,
                  scalings=None,
                  loss_clip=1e3):
