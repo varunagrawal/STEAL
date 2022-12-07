@@ -3,11 +3,11 @@ import numpy as np
 import torch
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-# -----------------------------------------
+from scipy.linalg import norm
 
 
 def plot_traj_2D(traj, ls, color, order=2):
+    """Plot a 2D trajectory."""
     plt.plot(traj[:, 0], traj[:, 1], linestyle=ls, linewidth=2, color=color)
     plt.plot(traj[0, 0], traj[0, 1], 'ko')
     plt.plot(traj[-1, 0], traj[-1, 1], 'x', color=color)
@@ -21,17 +21,14 @@ def plot_traj_2D(traj, ls, color, order=2):
                    scale=1.)
 
 
-# --------------------------------------
-
-
 def plot_trajectories_3D(traj_list, ls, color, ax_handle=None, zorder=100):
+    """Plot multiple 3D trajectories."""
     if ax_handle is None:
         ax = plt.gca()
     else:
         ax = ax_handle
 
-    for i in range(len(traj_list)):
-        traj = traj_list[i]
+    for i, traj in enumerate(traj_list):
         ax.plot3D(traj[:, 0],
                   traj[:, 1],
                   traj[:, 2],
@@ -52,10 +49,8 @@ def plot_trajectories_3D(traj_list, ls, color, ax_handle=None, zorder=100):
         # plt.quiver(traj[0, 0], traj[1, 0], traj[2, 0] + 1e-20, traj[3, 0] + 1e-20, color
 
 
-# ---------------------------------------
-
-
 def plot_traj_3D(traj, ls, color, ax_handle=None):
+    """Plot a 3D trajectory."""
     if ax_handle is None:
         ax = plt.gca()
     else:
@@ -75,10 +70,14 @@ def plot_traj_3D(traj, ls, color, ax_handle=None):
     # plt.quiver(traj[0, 0], traj[1, 0], traj[2, 0] + 1e-20, traj[3, 0] + 1e-20, color='k')
 
 
-# ----------------------------------------
-
-
-def plot_traj_time(time, traj, ls='--', color='k', axs_handles=None, lw=2):
+def plot_traj_time(time,
+                   traj,
+                   ls='--',
+                   color='k',
+                   axs_handles=None,
+                   lw=2,
+                   labels=('X', 'Y'),
+                   title="Traj"):
     shape = traj.shape
     if shape[1] > shape[0]:
         traj = traj.T
@@ -95,12 +94,12 @@ def plot_traj_time(time, traj, ls='--', color='k', axs_handles=None, lw=2):
         else:
             ax = axs_handles[i]
         ax.plot(time, traj[:, i], linestyle=ls, linewidth=lw, color=color)
+        ax.set(ylabel=labels[i])
         axs_handles[i] = ax
 
+    plt.xlabel("Time")
+    plt.suptitle(title)
     return axs_handles
-
-
-# ---------------------------------------
 
 
 def plot_robot_2D(robot, q, lw=2, handle_list=None, link_order=None):
@@ -115,9 +114,9 @@ def plot_robot_2D(robot, q, lw=2, handle_list=None, link_order=None):
     if handle_list is None:
         handle_list = []
 
-        for n in range(len(link_order)):
-            pt1 = link_pos[:, link_order[n][0]]
-            pt2 = link_pos[:, link_order[n][1]]
+        for link_pair in link_order:
+            pt1 = link_pos[:, link_pair[0]]
+            pt2 = link_pos[:, link_pair[1]]
 
             h1 = plt.plot(pt1[0],
                           pt1[1],
@@ -138,9 +137,9 @@ def plot_robot_2D(robot, q, lw=2, handle_list=None, link_order=None):
             handle_list.append(h3[0])
     else:
         m = 0
-        for n in range(len(link_order)):
-            pt1 = link_pos[:, link_order[n][0]]
-            pt2 = link_pos[:, link_order[n][1]]
+        for link_pair in link_order:
+            pt1 = link_pos[:, link_pair[0]]
+            pt2 = link_pos[:, link_pair[1]]
 
             handle_list[m].set_data(pt1[0], pt1[1])
             m += 1
@@ -152,9 +151,6 @@ def plot_robot_2D(robot, q, lw=2, handle_list=None, link_order=None):
     return handle_list,
 
 
-# ------------------------------
-
-
 def plot_robot_3D(robot, q, lw, handle_list=None, link_order=None):
     link_pos = robot.forward_kinematics(q)
 
@@ -164,9 +160,9 @@ def plot_robot_3D(robot, q, lw, handle_list=None, link_order=None):
         handle_list = []
 
         if link_order is not None:
-            for n in range(len(link_order)):
-                pt1 = link_pos[:, link_order[n][0]]
-                pt2 = link_pos[:, link_order[n][1]]
+            for link_pair in link_order:
+                pt1 = link_pos[:, link_pair[0]]
+                pt2 = link_pos[:, link_pair[1]]
                 h3 = ax.plot3D(np.array([pt1[0], pt2[0]]),
                                np.array([pt1[1], pt2[1]]),
                                np.array([pt1[2], pt2[2]]),
@@ -205,9 +201,9 @@ def plot_robot_3D(robot, q, lw, handle_list=None, link_order=None):
     else:
         if link_order is not None:
             m = 0
-            for n in range(len(link_order)):
-                pt1 = link_pos[:, link_order[n][0]]
-                pt2 = link_pos[:, link_order[n][1]]
+            for link_pair in link_order:
+                pt1 = link_pos[:, link_pair[0]]
+                pt2 = link_pos[:, link_pair[1]]
 
                 # handle_list[m].set_data(pt1[0], pt1[1], pt1[2])
                 # m += 1
@@ -235,10 +231,8 @@ def plot_robot_3D(robot, q, lw, handle_list=None, link_order=None):
     return handle_list,
 
 
-# ---------------------------------------
-
-
 def plot_tf_from_mat(transformation_mat, axis_scale=0.02, ax_handle=None):
+    """Plot transform as 3-axis from tranformation matrix."""
     if ax_handle is None:
         ax = plt.gca()
     else:
@@ -256,15 +250,14 @@ def plot_tf_from_mat(transformation_mat, axis_scale=0.02, ax_handle=None):
                   color=axis_colors[d])
 
 
-# -------------------------------
 def transform_pt(pt, transform_mat):
+    """Transform a point to a different reference frame specified by `tranform_mat`."""
     pt = np.concatenate((pt, np.ones((1, 1))))
     pt_transformed = np.dot(transform_mat, pt)[0:3].reshape(-1, 1)
 
     return pt_transformed
 
 
-# --------------------------------
 def set_axes_radius(ax, origin, radius):
     ax.set_xlim3d([origin[0] - radius, origin[0] + radius])
     ax.set_ylim3d([origin[1] - radius, origin[1] + radius])
@@ -272,13 +265,13 @@ def set_axes_radius(ax, origin, radius):
 
 
 def set_axes_equal(ax):
-    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
-    cubes as cubes, etc..  This is one possible solution to Matplotlib's
-    ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
+    """Make axes of 3D plot have equal scale so that spheres appear as spheres,
+	cubes as cubes, etc..  This is one possible solution to Matplotlib's
+	ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
 
-    Input
-      ax: a matplotlib axis, e.g., as output from plt.gca().
-    '''
+	Input
+	  ax: a matplotlib axis, e.g., as output from plt.gca().
+	"""
 
     limits = np.array([
         ax.get_xlim3d(),
@@ -289,10 +282,6 @@ def set_axes_equal(ax):
     origin = np.mean(limits, axis=1)
     radius = 0.5 * np.max(np.abs(limits[:, 1] - limits[:, 0]))
     set_axes_radius(ax, origin, radius)
-
-
-# ------------------------------------------
-# cube plotting routines
 
 
 def cuboid_data2(o, size=(1, 1, 1)):
@@ -322,9 +311,6 @@ def plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
                             **kwargs)
 
 
-#-------------------------------------------------------
-
-
 def plot_sphere(c, r, axis=None, alpha=1.0):
     if axis == None:
         axis = plt.gca()
@@ -342,10 +328,6 @@ def plot_sphere(c, r, axis=None, alpha=1.0):
                       cstride=stride,
                       rstride=stride,
                       alpha=alpha)
-
-
-# ----------------------------------------------------
-from scipy.linalg import norm
 
 
 def plot_cylinder(p0, p1, R, ax=None):

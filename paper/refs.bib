@@ -93,3 +93,55 @@
     journal={IEEE International Conference on Robotics and Automation (ICRA)},
     year={2020}
 }
+
+@article{Mukadam18ijrr,
+author = {Mustafa Mukadam and Jing Dong and Xinyan Yan and Frank Dellaert and Byron Boots},
+title ={Continuous-time Gaussian process motion planning via probabilistic inference},
+journal = {The International Journal of Robotics Research},
+volume = {37},
+number = {11},
+pages = {1319-1340},
+year = {2018},
+doi = {10.1177/0278364918790369},
+
+URL = { 
+        https://doi.org/10.1177/0278364918790369
+    
+},
+eprint = { 
+        https://doi.org/10.1177/0278364918790369
+    
+}
+,
+    abstract = { We introduce a novel formulation of motion planning, for continuous-time trajectories, as probabilistic inference. We first show how smooth continuous-time trajectories can be represented by a small number of states using sparse Gaussian process (GP) models. We next develop an efficient gradient-based optimization algorithm that exploits this sparsity and GP interpolation. We call this algorithm the Gaussian Process Motion Planner (GPMP). We then detail how motion planning problems can be formulated as probabilistic inference on a factor graph. This forms the basis for GPMP2, a very efficient algorithm that combines GP representations of trajectories with fast, structure-exploiting inference via numerical optimization. Finally, we extend GPMP2 to an incremental algorithm, iGPMP2, that can efficiently replan when conditions change. We benchmark our algorithms against several sampling-based and trajectory optimization-based motion planning algorithms on planning problems in multiple environments. Our evaluation reveals that GPMP2 is several times faster than previous algorithms while retaining robustness. We also benchmark iGPMP2 on replanning problems, and show that it can find successful solutions in a fraction of the time required by GPMP2 to replan from scratch. }
+}
+
+@unpublished{vanWaveren22manuscript,
+   author = {van Waveren, Sanne and Rudling, Rasmus and Leite, Iolanda and Jensfelt, Patric and Pek, Christian},
+   institution = {KTH, Robotics, Perception and Learning, RPL},
+   note = {QC 20221109},
+   title = {Increasing Perceived Safety in Motion Planning for Human-Drone Interaction},
+}
+
+@inproceedings{Bhardwaj20icra,
+author = {Bhardwaj, Mohak and Boots, Byron and Mukadam, Mustafa},
+year = {2020},
+month = {05},
+pages = {10598-10604},
+title = {Differentiable Gaussian Process Motion Planning},
+doi = {10.1109/ICRA40945.2020.9197260}
+}
+
+@inproceedings{Bonilla07neurips,
+ author = {Bonilla, Edwin V and Chai, Kian and Williams, Christopher},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {J. Platt and D. Koller and Y. Singer and S. Roweis},
+ pages = {},
+ publisher = {Curran Associates, Inc.},
+ title = {Multi-task Gaussian Process Prediction},
+ url = {https://proceedings.neurips.cc/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf},
+ volume = {20},
+ year = {2007}
+}
+
+@ARTICLE{Khansari-Zadeh11tro,  author={Khansari-Zadeh, S. Mohammad and Billard, Aude},  journal={IEEE Transactions on Robotics},   title={Learning Stable Nonlinear Dynamical Systems With Gaussian Mixture Models},   year={2011},  volume={27},  number={5},  pages={943-957},  doi={10.1109/TRO.2011.2159412}}

@@ -3,27 +3,36 @@ import torch
 
 from steal.rmpflow.kinematics import TaskMap
 
+#pylint: disable=method-hidden
+
 
 class TargetTaskMap(TaskMap):
-    '''
+    """
     Vector to goal point
-    '''
+    """
 
     def __init__(self, goal, device=torch.device('cpu')):
-        psi = lambda y: y - self.goal
-        J = lambda y: torch.eye(self.n_inputs, device=device).repeat(
-            y.shape[0], 1, 1)
-        J_dot = lambda y, y_dot: torch.zeros(
-            self.n_inputs, self.n_inputs, device=device).repeat(
-                y.shape[0], 1, 1)
+
         super(TargetTaskMap, self).__init__(n_inputs=goal.shape[1],
                                             n_outputs=goal.shape[1],
-                                            psi=psi,
-                                            J=J,
-                                            J_dot=J_dot,
+                                            psi=self.psi,
+                                            J=self.J,
+                                            J_dot=self.J_dot,
                                             device=device)
+        self.device = device
         self.register_buffer(
             'goal', goal.to(device=device, dtype=torch.get_default_dtype()))
+
+    def psi(self, y):
+        return y - self.goal
+
+    def J(self, y):
+        return torch.eye(self.n_inputs,
+                         device=self.device).repeat(y.shape[0], 1, 1)
+
+    def J_dot(self, y, y_dot):
+        return torch.zeros(self.n_inputs, self.n_inputs,
+                           device=self.device).repeat(y.shape[0], 1, 1)
 
 
 class TargetTaskMapTF(TaskMap):
@@ -78,8 +87,9 @@ class SphericalTargetTaskMap(TaskMap):
         y = x - self.center
         y_norm = torch.norm(y, dim=1).repeat_interleave(self.n_inputs**2).view(
             -1, self.n_inputs, self.n_inputs)
-        J = (1.-(self.radius/y_norm))*torch.eye(self.n_inputs, device=self.device).repeat(x.shape[0], 1, 1) \
-         + (self.radius/y_norm**2)*torch.einsum('bi, bj-> bij', y, y)
+        J = (1. - (self.radius / y_norm)) * \
+            torch.eye(self.n_inputs, device=self.device).repeat(x.shape[0], 1, 1) + \
+                (self.radius / y_norm**2) * torch.einsum('bi, bj-> bij', y, y)
         return J
 
 
@@ -122,7 +132,7 @@ class DimSelectorTaskMap(TaskMap):
 
 
 if __name__ == '__main__':
-    map = SphericalTargetTaskMap(center=torch.zeros(1, 2), radius=1.)
+    sphere_map = SphericalTargetTaskMap(center=torch.zeros(1, 2), radius=1.)
 
     tm = DimSelectorTaskMap(n_inputs=4, selected_dims=torch.arange(0, 2))
     y, yd, J, Jd = tm(torch.zeros(10, 4), torch.zeros(10, 4), order=2)
