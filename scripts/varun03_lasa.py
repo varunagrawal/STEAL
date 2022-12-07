@@ -9,18 +9,16 @@ import torch
 from loguru import logger
 from matplotlib import animation
 from matplotlib import pyplot as plt
-from torch.utils.data import ConcatDataset, DataLoader, TensorDataset
+from torch.utils.data import ConcatDataset, DataLoader
 
 from steal.datasets import get_dataset_list, get_lasa_data
 from steal.learning import (LatentTaskMapNetwork, get_flow_params,
-                            get_leaf_goals, get_params, get_task_space_models,
-                            train_combined, train_combined2, train_independent,
+                            get_leaf_goals, get_params, train_combined2,
                             train_independent2)
 from steal.rmpflow import RmpTreeNode
-from steal.rmpflow.kinematics.robot import Robot
+from steal.robot import Robot, create_rmp_tree
 from steal.utils import (generate_trajectories, plot_robot_2D, plot_traj_2D,
                          plot_traj_time)
-from steal.utils.robot import create_rmp_tree
 
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
@@ -201,7 +199,9 @@ def main():
 
     link_names = ('link4', 'link8')
 
-    time_list, joint_traj_list, dt, n_demos = get_lasa_data(params, cspace_dim)
+    time_list, joint_traj_list, dt, n_demos = get_lasa_data(params,
+                                                            cspace_dim,
+                                                            data_name="Angle")
 
     #TODO remove this duplicate
     leaf_goals, _ = get_leaf_goals(robot, link_names, joint_traj_list)
@@ -223,7 +223,8 @@ def main():
 
     task_map_nets: list[LatentTaskMapNetwork] = get_task_space_models2(
         link_names, scalings, translations, leaf_goals, params)
-    task_map_nets = train_independent2(task_map_nets, link_names, dataset_list, params)
+    task_map_nets = train_independent2(task_map_nets, link_names, dataset_list,
+                                       params)
 
     lagrangian_vel_nets = []
     for net in task_map_nets:

@@ -34,7 +34,7 @@ class Rmp(nn.Module):
         if self.return_natural:
             return f, M
         xdd = torch.einsum('bij,bj->bi', torch.pinverse(M), f)
-        return xdd, M
+        return xdd
 
     @abc.abstractmethod
     def eval_natural(self, x, xd, t=None):

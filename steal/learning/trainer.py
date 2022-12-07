@@ -83,8 +83,7 @@ class LatentTaskMapNetwork(pl.LightningModule):
     def training_step(self, batch):
         x, y = batch
         # forward pass
-        # y_pred = self.leaf_rmp(x)
-        y_pred, _ = self.leaf_rmp(x)
+        y_pred = self.leaf_rmp(x)
         # compute loss
         loss = self.loss(y_pred, y)
 
