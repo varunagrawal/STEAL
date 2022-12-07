@@ -11,6 +11,10 @@ from gpytorch.likelihoods import GaussianLikelihood
 from gpytorch.means import ConstantMean
 from gpytorch.models import ExactGP
 
+"""
+Code example from: https://docs.gpytorch.ai/en/stable/examples/01_Exact_GPs/Simple_GP_Regression.html
+"""
+
 torch.manual_seed(1813)
 
 
