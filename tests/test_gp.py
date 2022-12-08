@@ -160,18 +160,18 @@ class TestGaussianProcess(unittest.TestCase):
         # Test points are regularly spaced along [0,6]
         # Make predictions by feeding model through likelihood
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
-            test_x = torch.linspace(0, 6, 1000).double()
-            observed_pred = likelihood(model(test_x))
+            test_t = torch.linspace(0, 6, 1000).double()
+            observed_pred = likelihood(model(test_t))
 
         # GP Model for time vs Y position
-        m2 = model_GP(train_x, train_y2)
+        m2 = model_GP(train_t, train_y)
         model1 = m2.get_model()
-        m2.training(train_x, train_y1, training_iter)
+        m2.training(train_t, train_y, training_iters)
         likelihood1 = m2.evaluation()
 
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
-            test_x = torch.linspace(0, 6, 1000).double()
-            observed_pred1 = likelihood1(model1(test_x))
+            test_t = torch.linspace(0, 6, 1000).double()
+            observed_pred1 = likelihood1(model1(test_t))
 
         # Plot graphs
         with torch.no_grad():
@@ -181,15 +181,15 @@ class TestGaussianProcess(unittest.TestCase):
             # Get upper and lower confidence bounds
             lower, upper = observed_pred.confidence_region()
             # Plot training data as black stars
-            for j in range(len(trajectory)):
-                train_x = train_x_data(trajectory, j)
-                train_y1 = train_y_data(trajectory, j)
-                ax.plot(train_x.numpy(), train_y1.numpy(), '--')
+            for j, trajectory in enumerate(trajectories):
+                train_t = trajectory.t[0]
+                train_x = trajectory.pos[0, :]
+                ax.plot(train_t, train_x, '--')
 
             # Plot predictive means as blue line
-            ax.plot(test_x.numpy(), observed_pred.mean.numpy(), 'b')
+            ax.plot(test_t.numpy(), observed_pred.mean.numpy(), 'b')
             # Shade between the lower and upper confidence bounds
-            ax.fill_between(test_x.numpy(),
+            ax.fill_between(test_t.numpy(),
                             lower.numpy(),
                             upper.numpy(),
                             alpha=0.5)
@@ -213,15 +213,15 @@ class TestGaussianProcess(unittest.TestCase):
             # Get upper and lower confidence bounds
             lower, upper = observed_pred1.confidence_region()
             # Plot training data as black stars
-            for j in range(len(trajectory)):
-                train_x = train_x_data(trajectory, j)
-                train_y2 = train_y_data(trajectory, j, isX=False)
-                ax.plot(train_x.numpy(), train_y2.numpy(), '--')
+            for j, trajectory in enumerate(trajectories):
+                train_t = trajectory.t[0]
+                train_y = trajectory.pos[1, :]
+                ax.plot(train_t, train_y, '--')
 
             # Plot predictive means as blue line
-            ax.plot(test_x.numpy(), observed_pred1.mean.numpy(), 'b')
+            ax.plot(test_t, observed_pred1.mean.numpy(), 'b')
             # Shade between the lower and upper confidence bounds
-            ax.fill_between(test_x.numpy(),
+            ax.fill_between(test_t,
                             lower.numpy(),
                             upper.numpy(),
                             alpha=0.5)
@@ -242,16 +242,16 @@ class TestGaussianProcess(unittest.TestCase):
             f, ax = plt.subplots(1, 1, figsize=(4, 3))
 
             # Plot training data as black stars
-            for j in range(len(trajectory)):
-                train_y1 = train_y_data(trajectory, j)
-                train_y2 = train_y_data(trajectory, j, isX=False)
-                ax.plot(train_y1.numpy(), train_y2.numpy(), '--')
+            for j, trajectory in enumerate(trajectories):
+                train_x = trajectory.pos[0, :]
+                train_y = trajectory.pos[1, :]
+                ax.plot(train_x, train_y, '--')
 
             # Plot predictive means as blue line
             ax.plot(observed_pred.mean.numpy(), observed_pred1.mean.numpy(),
                     'b')
             # Shade between the lower and upper confidence bounds
-            # ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
+            # ax.fill_between(test_t.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
             ax.set_xlim([-40, 15])
             ax.set_ylim([-25, 30])
             ax.legend([
@@ -274,14 +274,14 @@ class TestGaussianProcess(unittest.TestCase):
             ax = fig.add_subplot(111, projection='3d')
 
             # Plot training data as black stars
-            for j in range(len(trajectory)):
-                train_y1 = train_y_data(trajectory, j)
-                train_y2 = train_y_data(trajectory, j, isX=False)
-                ax.plot(train_y2.numpy(), train_y1.numpy(), test_x, '--')
+            for trajectory in trajectories:
+                train_x = trajectory.pos[0, :]
+                train_y = trajectory.pos[1, :]
+                ax.plot(train_y, train_x, test_t, '--')
 
             # Plot predictive means as blue line
             ax.plot(observed_pred1.mean.numpy(), observed_pred.mean.numpy(),
-                    test_x, 'b')
+                    test_t, 'b')
             ax.legend([
                 'Observed Demo 1',
                 'Observed Demo 2',
