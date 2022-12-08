@@ -73,15 +73,11 @@ class ModelGP:
             # Calc loss and backprop gradients
             loss = -self.mll(output, train_output)
             loss.backward()
-            # print(
-            #     f'Iter {i+1}/{training_iters} - Loss: %.3f   lengthscale: %.3f   noise: %.3f'
-            #     % (i + 1, training_iters, loss.item(),
-            #        self.model.covar_module.base_kernel.lengthscale.item(),
-            #        self.model.likelihood.noise.item()))
             print(
-                f'Iter {i+1}/{training_iters} - Loss: {loss.item()}   lengthscale: {0}   noise: {1}'
-                .format(self.model.covar_module.base_kernel.lengthscale.item(),
-                        self.model.likelihood.noise.item()))
+                f'Iter {i+1}/{training_iters} - Loss: {loss.item():.3f}' \
+                f'   lengthscale: {self.model.covar_module.base_kernel.lengthscale.item():.3f}'\
+                f'   noise: {self.model.likelihood.noise.item():.3f}'
+            )
 
             self.optimizer.step()
 
