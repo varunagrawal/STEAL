@@ -1,5 +1,7 @@
 """Unit tests for Gaussian Process Regression on Trajectories"""
 
+#pylint: disable=arguments-differ
+
 import unittest
 
 import gpytorch
@@ -61,13 +63,14 @@ class ExactGPModel(ExactGP):
         self.covar_module = ScaleKernel(RBFKernel())
 
     def forward(self, x):
+        """Forward pass"""
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return MultivariateNormal(mean_x, covar_x)
 
 
 class model_GP:
-    # define a simple Exact GP model
+    """Sefine a simple Exact GP model"""
     def __init__(self, X, y) -> None:
 
         # initialize likelihood and model
@@ -88,18 +91,22 @@ class model_GP:
         self.model.double()
 
     def get_model(self):
+        """Return the GP model"""
         return self.model
 
     def get_optimizer(self):
+        """Return the optimizer"""
         return self.optimizer
 
     def get_likelihood(self):
+        """Return the likelihood function."""
         return self.likelihood
 
     # train the GP
-    def training(self, train_input, train_output, training_iter):
+    def training(self, train_input, train_output, training_iters):
+        """Run Type II MLE to get the best prior hyperparameters."""
 
-        for i in range(training_iter):
+        for i in range(training_iters):
             # Zero gradients from previous iteration
             self.optimizer.zero_grad()
             # Output from model
@@ -108,8 +115,8 @@ class model_GP:
             # Calc loss and backprop gradients
             loss = -self.mll(output, train_output)
             loss.backward()
-            print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' %
-                  (i + 1, training_iter, loss.item(),
+            print(f'Iter {i+1}/{training_iters} - Loss: %.3f   lengthscale: %.3f   noise: %.3f' %
+                  (i + 1, training_iters, loss.item(),
                    self.model.covar_module.base_kernel.lengthscale.item(),
                    self.model.likelihood.noise.item()))
             self.optimizer.step()
@@ -123,8 +130,9 @@ class model_GP:
 
 
 class TestGaussianProcess(unittest.TestCase):
-
+    """Tests for a scalar valued Gaussian Process on the LASA dataset."""
     def test_load_trajectories(self):
+        """Test if loading of trajectories is correct."""
         trajectories = load_trajectories()
         assert len(trajectories) == 7
 
@@ -133,6 +141,7 @@ class TestGaussianProcess(unittest.TestCase):
         assert train_xy.shape == (7000, 2)
 
     def test_gp(self):
+        """Test training of a scalar-valued GP."""
         trajectories = load_trajectories()
         assert len(trajectories) == 7
 
@@ -176,7 +185,7 @@ class TestGaussianProcess(unittest.TestCase):
         # Plot graphs
         with torch.no_grad():
             # Initialize plot
-            f, ax = plt.subplots(1, 1, figsize=(4, 3))
+            _, ax = plt.subplots(1, 1, figsize=(4, 3))
 
             # Get upper and lower confidence bounds
             lower, upper = observed_pred.confidence_region()
@@ -221,10 +230,7 @@ class TestGaussianProcess(unittest.TestCase):
             # Plot predictive means as blue line
             ax.plot(test_t, observed_pred1.mean.numpy(), 'b')
             # Shade between the lower and upper confidence bounds
-            ax.fill_between(test_t,
-                            lower.numpy(),
-                            upper.numpy(),
-                            alpha=0.5)
+            ax.fill_between(test_t, lower.numpy(), upper.numpy(), alpha=0.5)
             ax.set_xlim([0, 6.0])
             ax.set_ylim([-25, 30])
             ax.legend([
@@ -295,4 +301,5 @@ class TestGaussianProcess(unittest.TestCase):
             ax.set_xlabel('Y-position')
             ax.set_ylabel('X-position')
             ax.set_zlabel('Time')
+            plt.show()
             plt.show()
