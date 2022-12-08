@@ -103,6 +103,55 @@ class TestGaussianProcess(unittest.TestCase):
             test_t = torch.linspace(0, 6, 1000).double()
             observed_pred1 = likelihood1(model1(test_t))
 
+        trajectories_to_plot = [(trajectory.t[0], trajectory.pos[0, :])
+                                for trajectory in trajectories]
+        self.plot_gp(observed_pred,
+                     trajectories_to_plot,
+                     means=(test_t.numpy(), observed_pred.mean.numpy()),
+                     xlim=[0, 6.0],
+                     ylim=[-40, 15],
+                     xlabel="Time",
+                     ylabel="X-position",
+                     image_name="x_time_GP.png")
+
+        trajectories_to_plot = [(trajectory.t[0], trajectory.pos[1, :])
+                                for trajectory in trajectories]
+        self.plot_gp(observed_pred1,
+                     trajectories_to_plot,
+                     means=(test_t.numpy(), observed_pred1.mean.numpy()),
+                     xlim=[0, 6.0],
+                     ylim=[-25, 30],
+                     xlabel="Time",
+                     ylabel="Y-position",
+                     image_name="y_time_GP.png")
+
+        trajectories_to_plot = [(trajectory.pos[0, :], trajectory.pos[1, :])
+                                for trajectory in trajectories]
+        self.plot_gp(observed_pred1,
+                     trajectories_to_plot,
+                     means=(observed_pred.mean.numpy(),
+                            observed_pred1.mean.numpy()),
+                     xlim=[-40, 15],
+                     ylim=[-25, 30],
+                     xlabel="X-position",
+                     ylabel="Y-position",
+                     plot_intervals=False)
+
+        self.plot_3d_traj(trajectories,
+                          test_t,
+                          observed_preds=(observed_pred, observed_pred1))
+
+    def plot_gp(self,
+                observed_pred,
+                trajectories,
+                means,
+                xlim=(0, 6.0),
+                ylim=(-40, 15),
+                xlabel="Time",
+                ylabel="X-position",
+                image_name=None,
+                plot_intervals=True):
+        """Plot the gaussian process with confidence intervales"""
         # Plot graphs
         with torch.no_grad():
             # Initialize plot
@@ -110,90 +159,36 @@ class TestGaussianProcess(unittest.TestCase):
 
             # Get upper and lower confidence bounds
             lower, upper = observed_pred.confidence_region()
-            # Plot training data as black stars
-            for j, trajectory in enumerate(trajectories):
-                train_t = trajectory.t[0]
-                train_x = trajectory.pos[0, :]
-                ax.plot(train_t, train_x, '--')
+
+            # Plot training data as dotted lines
+            for x, y in trajectories:
+                ax.plot(x, y, '--')
 
             # Plot predictive means as blue line
-            ax.plot(test_t.numpy(), observed_pred.mean.numpy(), 'b')
-            # Shade between the lower and upper confidence bounds
-            ax.fill_between(test_t.numpy(),
-                            lower.numpy(),
-                            upper.numpy(),
-                            alpha=0.5)
-            ax.set_xlim([0, 6.0])
-            # ax.set_ylim([-25, 30])
-            ax.set_ylim([-40, 15])
+            ax.plot(means[0], means[1], 'b')
+
+            if plot_intervals:
+                # Shade between the lower and upper confidence bounds
+                ax.fill_between(means[0],
+                                lower.numpy(),
+                                upper.numpy(),
+                                alpha=0.5)
+
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
             ax.legend([
                 'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
                 'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
                 'Observed Demo 7', 'Mean', 'Confidence'
             ])
-            ax.set_xlabel('Time')
-            ax.set_ylabel('X-position')
-            plt.savefig('x_time_GP.png')
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+            if image_name:
+                plt.savefig(image_name)
+
             plt.show()
 
-        with torch.no_grad():
-            # Initialize plot
-            f, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-            # Get upper and lower confidence bounds
-            lower, upper = observed_pred1.confidence_region()
-            # Plot training data as black stars
-            for j, trajectory in enumerate(trajectories):
-                train_t = trajectory.t[0]
-                train_y = trajectory.pos[1, :]
-                ax.plot(train_t, train_y, '--')
-
-            # Plot predictive means as blue line
-            ax.plot(test_t, observed_pred1.mean.numpy(), 'b')
-            # Shade between the lower and upper confidence bounds
-            ax.fill_between(test_t, lower.numpy(), upper.numpy(), alpha=0.5)
-            ax.set_xlim([0, 6.0])
-            ax.set_ylim([-25, 30])
-            ax.legend([
-                'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
-                'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
-                'Observed Demo 7', 'Mean', 'Confidence'
-            ])
-            ax.set_xlabel('Time')
-            ax.set_ylabel('Y-position')
-            plt.savefig('y_time_GP.png')
-            plt.show()
-
-        with torch.no_grad():
-            # Initialize plot
-            f, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-            # Plot training data as black stars
-            for j, trajectory in enumerate(trajectories):
-                train_x = trajectory.pos[0, :]
-                train_y = trajectory.pos[1, :]
-                ax.plot(train_x, train_y, '--')
-
-            # Plot predictive means as blue line
-            ax.plot(observed_pred.mean.numpy(), observed_pred1.mean.numpy(),
-                    'b')
-            # Shade between the lower and upper confidence bounds
-            # ax.fill_between(test_t.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
-            ax.set_xlim([-40, 15])
-            ax.set_ylim([-25, 30])
-            ax.legend([
-                'Observed Demo 1',
-                'Observed Demo 2',
-                'Observed Demo 3',
-                'Observed Demo 4',
-                'Observed Demo 5',
-                'Observed Demo 6',
-                'Observed Demo 7',
-                'Predicted trajectory',
-            ])
-            ax.set_xlabel('X-position')
-            ax.set_ylabel('Y-position')
-            plt.show()
+    def plot_3d_traj(self, trajectories, test_t, observed_preds):
 
         with torch.no_grad():
 
@@ -207,8 +202,8 @@ class TestGaussianProcess(unittest.TestCase):
                 ax.plot(train_y, train_x, test_t, '--')
 
             # Plot predictive means as blue line
-            ax.plot(observed_pred1.mean.numpy(), observed_pred.mean.numpy(),
-                    test_t, 'b')
+            ax.plot(observed_preds[1].mean.numpy(),
+                    observed_preds[0].mean.numpy(), test_t, 'b')
             ax.legend([
                 'Observed Demo 1',
                 'Observed Demo 2',
@@ -222,5 +217,5 @@ class TestGaussianProcess(unittest.TestCase):
             ax.set_xlabel('Y-position')
             ax.set_ylabel('X-position')
             ax.set_zlabel('Time')
-            plt.show()
+            # plt.show()
             plt.show()
