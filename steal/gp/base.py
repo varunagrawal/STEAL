@@ -26,7 +26,7 @@ class ExactGPModel(ExactGP):
         return MultivariateNormal(mean_x, covar_x)
 
 
-class model_GP:
+class ModelGP:
     """Sefine a simple Exact GP model"""
 
     def __init__(self, X, y) -> None:

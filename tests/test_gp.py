@@ -12,7 +12,7 @@ from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
-from steal.gp import model_GP
+from steal.gp import ModelGP
 
 
 def load_trajectories(dataset_name="heee"):
@@ -82,7 +82,7 @@ class TestGaussianProcess(unittest.TestCase):
 
         # GP Model for time vs X position
         # initialize GP
-        m1 = model_GP(train_t, train_x)
+        m1 = ModelGP(train_t, train_x)
         model = m1.get_model()
         m1.training(train_t, train_x, training_iters)
         likelihood = m1.evaluation()
@@ -94,7 +94,7 @@ class TestGaussianProcess(unittest.TestCase):
             observed_pred = likelihood(model(test_t))
 
         # GP Model for time vs Y position
-        m2 = model_GP(train_t, train_y)
+        m2 = ModelGP(train_t, train_y)
         model1 = m2.get_model()
         m2.training(train_t, train_y, training_iters)
         likelihood1 = m2.evaluation()
