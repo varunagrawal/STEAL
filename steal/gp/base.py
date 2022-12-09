@@ -9,6 +9,7 @@ from gpytorch.likelihoods import GaussianLikelihood
 from gpytorch.means import ConstantMean
 from gpytorch.mlls import ExactMarginalLogLikelihood
 from gpytorch.models import ExactGP
+from torch.optim import Adam
 
 
 class ExactGPModel(ExactGP):
@@ -27,7 +28,7 @@ class ExactGPModel(ExactGP):
 
 
 class ModelGP:
-    """Sefine a simple Exact GP model"""
+    """Define a simple Exact GP model"""
 
     def __init__(self, X, y) -> None:
 
@@ -40,9 +41,8 @@ class ModelGP:
         self.likelihood.train()
 
         # Use the adam optimizer
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=0.1)  # Includes GaussianLikelihood parameters
+        # Includes GaussianLikelihood parameters
+        self.optimizer = Adam(self.model.parameters(), lr=0.1)
 
         # "Loss" for GPs - the marginal log likelihood
         self.mll = ExactMarginalLogLikelihood(self.likelihood, self.model)
