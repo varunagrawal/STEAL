@@ -1,0 +1,74 @@
+\section{Project Motivation}
+
+Learning from Demonstration provides a powerful paradigm for creating robot controllers for non-trivial tasks by leveraging provided demonstrations, either from expert or non-expert users.
+To be useful in the real world, we require that the policies learned by the robot be reactive (adaptive to dynamic environments) and stable (in the sense of Lyapunov stability).
+
+There is a need to be able to learn a generic policy from suboptimal task demonstrations.
+When learning from humans in the real-world, we cannot assume that the demonstrations will be optimal, due to either the inexperience of the users or the difference from a controlled laboratory setting. Therefore, the research question posed by this project is can we learn a stable, reactive policy from suboptimal demonstrations?
+
+%===============================================================================
+\vspace{-1em}
+\section{Description}
+
+To generate a stable, reactive robot policy, we leverage RMPFlow~\cite{Rana20corl}. RMPFlow provides a mathematically sound framework for generating guaranteed Lyapunov stable and reactive policies by leveraging Riemannian Geometry. This is related to prior work in motion policy generation such as DMP~\cite{Schaal06amam} but generalize over methods such as DMP and Model Predictive Control~\cite{Ratliff18arxiv}, making them a state-of-the-art framework for policy generation.
+
+We propose to leverage the framework described by~\cite{Rana20corl}, to learn a controller from potentially suboptimal demonstrations. This is accomplised by learning the Riemannian Motion Policy (RMP) potential functions $\Phi$ and the corresponding Riemannian metric \textbf{M}.
+%This is similar to learning the potential functions over classical impedance control~\cite{KhansariZadeh17ar} but with the added benefits of the Riemannian Geometry, providing us with reactive, safe, stable and hopefully optimal controllers.
+
+A key drawback of~\cite{Rana20corl} is that all the trajectories provided to the algorithm are given by a human expert. Thus the demonstration suboptimality is controlled to a certain extent as the selected nominal trajectory is from the dataset of expert trajectories and will be close to the other trajectories in the task space, something which may not be true in many real-world applications.
+
+Instead of picking one trajectory from the dataset as the nominal trajectory (via the use of Dynamic Time Warping), we propose to model the nominal trajectories throuhgh the use of a Gaussian Process. A gaussian process (GP) is a mathematical framework for probabilistically modeling continuous time functions. Here each function is the trajectory $\zeta(t)$ indexed by time $t$. GPs have seen significant application in the robotics community as a way to represent continuous-time trajectories~\cite{Barfoot14rss,Dong18icra} and thus form a natural choice for our proposed method. Additionally, GPs possess desirable properties such as exact sparsity and a low data requirement. Since GPs are estimated via a posterior probability, we can further expand their utilities and constraints by adding information via the priors (e.g. Mutual Information).
+
+As a stretch goal, a question we would like to answer as well is whether this framework can also handle heterogenous demonstrations. Given $N$ different datasets, each for a specific skill, it would be interesting to understand the pros and cons of our approach in such a heterogenous regime.
+
+%===============================================================================
+\section{Data}
+
+\subsection{Simulation}
+
+To establish correctness of our algorithm, we wish to first execute our proposed framework on a simple object push task in simulation. The goal of this task is to teach a manipulator to push a block over a line from few, teleoperated demonstrations. We can add further constraints such as performing the same task with clutter.
+
+For a real world task, we propose to use Assistive Gym's Robot Feeding Task as a dataset.
+Assistive Gym~\cite{Erickson20icra} provides a simulated environment for Robot Healthcare integrated into OpenAI's Gym environment.
+Feeding is a non-trivial task due to various considerations such as the human in the loop as well as voluntary and involuntary motion from the human to whom assistance is being provided. We believe this task can demonstrate the benefits of our approach very well.
+
+\subsection{Human Data}
+
+As a stretch goal, if time permits, we would like to collect data from human demonstrations as well for a simple pick and place task. However, we wish to first see success in the simulation cases.
+
+%===============================================================================
+
+\section{Data Collection Protocol}
+
+\subsection{Simulation}
+
+For both sets of simulated tasks, data will be collected via teleoperation. To encourage suboptimality, each of our team members will provide demonstrations without seeing each other's provided demonstrations. If need be, we will recruite friends for additional variance in the dataset.
+
+\subsection{Human Data}
+
+Human demonstrations would be collected either via Teleoperation or Kinesthetic Teaching of a Franka Arm or a Sawyer robot since they are robots available to us at Georgia Tech.
+
+%===============================================================================
+
+\section{Expected Outcome}
+
+The expected outcome of our approach is that we are able to learn a policy generated from RMPFlow which achieves the proposed tasks successfully and is adaptable to both dynamic environment changes as well as new information provided (via the Gaussian Process prior or the RMP constraints)., given suboptimal demonstrations.
+
+Our hope is that the use of RMPFlow implies lower risk to humans during deployment, but a potential risk is the gap between our provided demonstrations and the expectation of the end-users.
+
+%===============================================================================
+
+\section{Identification of Benchmark}
+
+We will compare our framework to the one proposed in~\cite{Rana20corl}. A simple metric we can use is ratio of task success as well as time for task execution.
+
+%===============================================================================
+
+\section{Timeline}
+\begin{itemize}
+    \item Week 1 Setup all the necessary software.
+    \item Week 2 Data collection for push task and Assistive Gym task.
+    \item Week 3 Project design and implementation.
+    \item Week 4-6 Evaluation and debugging.
+    \item Week 7 Report and presentation creation.
+\end{itemize}
