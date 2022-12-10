@@ -40,7 +40,7 @@ class ScalarGaussianProcess(BaseGaussianProcess):
 
         self._model.double()
 
-    def train(self, X, y, training_iters, lr=0.1):
+    def train(self, X, y, training_iterations, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
         # Find optimal model hyperparameters
@@ -54,7 +54,7 @@ class ScalarGaussianProcess(BaseGaussianProcess):
         # "Loss" for GPs - the marginal log likelihood
         mll = ExactMarginalLogLikelihood(self._likelihood, self._model)
 
-        for i in range(training_iters):
+        for i in range(training_iterations):
             # Zero gradients from previous iteration
             optimizer.zero_grad()
             # Output from model
@@ -64,7 +64,7 @@ class ScalarGaussianProcess(BaseGaussianProcess):
             loss = -mll(output, y)
             loss.backward()
             print(
-                f'Iter {i+1}/{training_iters} - Loss: {loss.item():.3f}' \
+                f'Iter {i+1}/{training_iterations} - Loss: {loss.item():.3f}' \
                 f'   lengthscale: {self._model.covar_module.base_kernel.lengthscale.item():.3f}'\
                 f'   noise: {self._model.likelihood.noise.item():.3f}'
             )

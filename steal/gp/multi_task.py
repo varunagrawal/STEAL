@@ -48,7 +48,7 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
 
         self._model.double()
 
-    def training(self, X, y, training_iters, lr=0.1):
+    def training(self, X, y, training_iterations, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
         # Find optimal model hyperparameters
@@ -62,7 +62,7 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
         # "Loss" for GPs - the marginal log likelihood
         mll = ExactMarginalLogLikelihood(self._likelihood, self._model)
 
-        for i in range(training_iters):
+        for i in range(training_iterations):
             # Zero gradients from previous iteration
             optimizer.zero_grad()
             # Output from model
@@ -72,7 +72,7 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
             loss = -mll(output, y)
             loss.backward()
             print(
-                f'Iter {i+1}/{training_iters} - Loss: {loss.item():.3f}' \
+                f'Iter {i+1}/{training_iterations} - Loss: {loss.item():.3f}' \
                 f'   noise: {self._model.likelihood.noise.item():.3f}'
             )
 
@@ -129,7 +129,7 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
 
         self._likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
 
-    def train(self, X, y, training_iters, lr=0.1):
+    def train(self, X, y, training_iterations, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
         train_dataset = TensorDataset(X, y)
@@ -156,7 +156,7 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
                               self._model,
                               num_data=y.size(0))
 
-        for i in range(training_iters):
+        for i in range(training_iterations):
             epoch_loss = 0
             for x_batch, y_batch in train_loader:
                 # Zero gradients from previous iteration
@@ -177,4 +177,4 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
             # normalize the total loss from the epoch
             epoch_loss /= len(train_loader)
             print(
-                f'Iter {i+1}/{training_iters} - Loss: {epoch_loss.item():.3f}')
+                f'Iter {i+1}/{training_iterations} - Loss: {epoch_loss.item():.3f}')
