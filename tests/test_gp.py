@@ -74,12 +74,10 @@ class TestGaussianProcess(unittest.TestCase):
         # Y Position
         train_y = torch.tensor(train_y)
 
-        training_iters = 1
-
         # GP Model for time vs X position
         # initialize GP
         m1 = ScalarGaussianProcess(train_t, train_x)
-        m1.training(train_t, train_x, training_iters)
+        m1.train(train_t, train_x, training_iters=1)
 
         # Test points are regularly spaced along [0,6]
         # Make predictions by feeding model through likelihood
@@ -89,7 +87,7 @@ class TestGaussianProcess(unittest.TestCase):
 
         # GP Model for time vs Y position
         m2 = ScalarGaussianProcess(train_t, train_y)
-        m2.training(train_t, train_y, training_iters)
+        m2.train(train_t, train_y, training_iters=1)
 
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
             test_t = torch.linspace(0, 6, 1000).double()
@@ -185,8 +183,7 @@ class TestMultitaskGP(unittest.TestCase):
 
         m = MultitaskExactGaussianProcess(train_t, train_xy, num_tasks=2)
 
-        training_iterations = 0
-        m.training(train_t, train_xy, training_iterations)
+        m.training(train_t, train_xy, training_iters=1)
 
         # Make predictions
         with torch.no_grad(), \
@@ -200,13 +197,13 @@ class TestMultitaskGP(unittest.TestCase):
         assert mean.shape == (1000, 2)
         torch.testing.assert_close(
             mean[0],
-            torch.tensor([-30.294394689, 15.628854520]).double())
+            torch.tensor([-30.514565338, 15.873690225]).double())
         torch.testing.assert_close(
             lower[0],
-            torch.tensor([-30.787182054, 13.816940166]).double())
+            torch.tensor([-31.367863748, 13.964214544]).double())
         torch.testing.assert_close(
             upper[0],
-            torch.tensor([-29.801607323, 17.440768875]).double())
+            torch.tensor([-29.661266929, 17.783165906]).double())
 
     def test_multi_output_variational_gp(self):
         """Unit test for variational inference on multi-output GP"""
@@ -218,7 +215,7 @@ class TestMultitaskGP(unittest.TestCase):
         m = MultitaskApproximateGaussianProcess(num_tasks=num_tasks,
                                                 num_latents=10)
 
-        m.training(train_t, train_xy, training_iterations=3)
+        m.train(train_t, train_xy, training_iters=3)
 
         # Make predictions
         with torch.no_grad(), \

@@ -18,7 +18,7 @@ class BaseGaussianProcess:
         """Return the likelihood function."""
         return self._likelihood
 
-    def train(self, X, y, num_epochs):
+    def train(self, X, y, training_iterations, lr=0.1):
         """Train the GP"""
 
     def evaluate(self, X):

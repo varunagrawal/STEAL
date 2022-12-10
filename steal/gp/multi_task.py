@@ -48,7 +48,7 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
 
         self._model.double()
 
-    def training(self, train_input, train_output, training_iters, lr=0.1):
+    def training(self, X, y, training_iters, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
         # Find optimal model hyperparameters
@@ -66,14 +66,13 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
             # Zero gradients from previous iteration
             optimizer.zero_grad()
             # Output from model
-            output = self._model(train_input)
+            output = self._model(X)
 
             # Calc loss and backprop gradients
-            loss = -mll(output, train_output)
+            loss = -mll(output, y)
             loss.backward()
             print(
                 f'Iter {i+1}/{training_iters} - Loss: {loss.item():.3f}' \
-                f'   lengthscale: {self._model.covar_module.base_kernel.lengthscale.item():.3f}'\
                 f'   noise: {self._model.likelihood.noise.item():.3f}'
             )
 
@@ -130,10 +129,10 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
 
         self._likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
 
-    def training(self, train_x, train_y, training_iterations, lr=0.1):
+    def train(self, X, y, training_iters, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
-        train_dataset = TensorDataset(train_x, train_y)
+        train_dataset = TensorDataset(X, y)
         train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True)
 
         # Find optimal model hyperparameters
@@ -155,9 +154,9 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
         # Our loss object. We're using the VariationalELBO for variational inference.
         mll = VariationalELBO(self._likelihood,
                               self._model,
-                              num_data=train_y.size(0))
+                              num_data=y.size(0))
 
-        for i in range(training_iterations):
+        for i in range(training_iters):
             epoch_loss = 0
             for x_batch, y_batch in train_loader:
                 # Zero gradients from previous iteration
@@ -178,5 +177,4 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
             # normalize the total loss from the epoch
             epoch_loss /= len(train_loader)
             print(
-                f'Iter {i+1}/{training_iterations} - Loss: {epoch_loss.item():.3f}'
-            )
+                f'Iter {i+1}/{training_iters} - Loss: {epoch_loss.item():.3f}')
