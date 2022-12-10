@@ -12,7 +12,7 @@ from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
-from steal.gp import ModelGP
+from steal.gp import ModelGP, MultitaskExactGP
 
 
 def load_trajectories(dataset_name="heee"):
@@ -219,3 +219,102 @@ class TestGaussianProcess(unittest.TestCase):
             ax.set_zlabel('Time')
             # plt.show()
             plt.show()
+
+
+class TestMultitaskGP(unittest.TestCase):
+
+    def get_data(self):
+        trajectories = load_trajectories()
+
+        # Concatenating the demos
+        train_t, train_xy = concatenate_trajectories(trajectories)
+
+        # Time
+        train_t = torch.tensor(train_t).float()
+        # Output
+        train_xy = torch.tensor(train_xy).float()
+
+        return trajectories, train_t, train_xy
+
+    def plot(self, trajectories, test_t, mean, lower, upper):
+        # This contains predictions for both tasks, flattened out
+        # The first half of the predictions is for the first task
+        # The second half is for the second task
+
+        # Initialize plots
+        f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
+
+        # Plot training data as black stars
+        # y1_ax.plot(train_x.detach().numpy(), train_y[:, 0].detach().numpy(), '--')
+        # Plot training data as dotted line
+        for trajectory in trajectories:
+            train_t = trajectory.t[0]
+            train_x = trajectory.pos[0, :]
+            train_y = trajectory.pos[1, :]
+            y1_ax.plot(train_t, train_x, '--')
+            y2_ax.plot(train_t, train_y, '--')
+
+        # Predictive mean as blue line
+        y1_ax.plot(test_t, mean[:, 0].numpy(), 'b')
+        # Shade in confidence
+        y1_ax.fill_between(test_t,
+                           lower[:, 0].numpy(),
+                           upper[:, 0].numpy(),
+                           alpha=0.5)
+        y1_ax.set_ylim([-40, 15])
+        legend = [
+            'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
+            'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
+            'Observed Demo 7', 'Mean', 'Confidence'
+        ]
+        y1_ax.legend(legend)
+        y1_ax.set_title('Observed Values (Likelihood)')
+
+        y2_ax.plot(test_t, mean[:, 1].numpy(), 'b')
+        # Shade in confidence
+        y2_ax.fill_between(test_t,
+                           lower[:, 1].numpy(),
+                           upper[:, 1].numpy(),
+                           alpha=0.5)
+        y2_ax.set_ylim([-25, 30])
+        y2_ax.legend(legend)
+        y2_ax.set_title('Observed Values (Likelihood)')
+        # plt.savefig('y_time.png')
+
+        plt.show()
+
+    def test_multi_output_exact_gp(self):
+        """"""
+        trajectories, train_t, train_xy = self.get_data()
+
+        m = MultitaskExactGP(train_t, train_xy, num_tasks=2)
+        model = m.get_model()
+
+        training_iterations = 0
+        m.training(train_t, train_xy, training_iterations)
+        likelihood = m.evaluation()
+
+        # Set into eval mode
+        model.eval()
+        likelihood.eval()
+
+        # Make predictions
+        with torch.no_grad(), \
+            gpytorch.settings.fast_pred_var(), \
+                gpytorch.settings.fast_computations():
+            test_t = torch.linspace(0, 6, 1000).float()
+            predictions = likelihood(model(test_t))
+            mean = predictions.mean
+            lower, upper = predictions.confidence_region()
+
+        print('Mean')
+        print(mean.shape)
+        print(mean[0:10, :])
+        print('Lower values:')
+        print(lower.shape)
+        print(lower[0:10, :])
+        print('Upper values:')
+        print(upper.shape)
+        print(lower[0:10, :])
+
+        self.plot(trajectories, test_t, mean, lower, upper)
