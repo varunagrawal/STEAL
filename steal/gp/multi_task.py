@@ -140,6 +140,7 @@ class MultitaskApproximateGP:
         inducing_points = torch.rand(num_latents, 16, 1)
         self.model = MultitaskApproximateGPModel(inducing_points, num_tasks,
                                                  num_latents)
+        self.model.double()
 
         self.likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
 
@@ -181,8 +182,6 @@ class MultitaskApproximateGP:
         mll = VariationalELBO(self.likelihood,
                               self.model,
                               num_data=train_y.size(0))
-
-        self.model.double()
 
         for i in range(training_iterations):
             epoch_loss = 0
