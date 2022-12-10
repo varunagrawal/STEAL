@@ -2,6 +2,7 @@
 
 #pylint: disable=unused-import
 
+import os
 import unittest
 
 import gpytorch
@@ -78,7 +79,7 @@ class TestGaussianProcess(unittest.TestCase):
         # Y Position
         train_y = torch.tensor(train_y)
 
-        training_iters = 22
+        training_iters = 1
 
         # GP Model for time vs X position
         # initialize GP
@@ -103,43 +104,46 @@ class TestGaussianProcess(unittest.TestCase):
             test_t = torch.linspace(0, 6, 1000).double()
             observed_pred1 = likelihood1(model1(test_t))
 
-        trajectories_to_plot = [(trajectory.t[0], trajectory.pos[0, :])
-                                for trajectory in trajectories]
-        self.plot_gp(observed_pred,
-                     trajectories_to_plot,
-                     means=(test_t.numpy(), observed_pred.mean.numpy()),
-                     xlim=[0, 6.0],
-                     ylim=[-40, 15],
-                     xlabel="Time",
-                     ylabel="X-position",
-                     image_name="x_time_GP.png")
+        if "PYTEST_CURRENT_TEST" not in os.environ:
 
-        trajectories_to_plot = [(trajectory.t[0], trajectory.pos[1, :])
-                                for trajectory in trajectories]
-        self.plot_gp(observed_pred1,
-                     trajectories_to_plot,
-                     means=(test_t.numpy(), observed_pred1.mean.numpy()),
-                     xlim=[0, 6.0],
-                     ylim=[-25, 30],
-                     xlabel="Time",
-                     ylabel="Y-position",
-                     image_name="y_time_GP.png")
+            trajectories_to_plot = [(trajectory.t[0], trajectory.pos[0, :])
+                                    for trajectory in trajectories]
+            self.plot_gp(observed_pred,
+                         trajectories_to_plot,
+                         means=(test_t.numpy(), observed_pred.mean.numpy()),
+                         xlim=[0, 6.0],
+                         ylim=[-40, 15],
+                         xlabel="Time",
+                         ylabel="X-position",
+                         image_name="x_time_GP.png")
 
-        trajectories_to_plot = [(trajectory.pos[0, :], trajectory.pos[1, :])
-                                for trajectory in trajectories]
-        self.plot_gp(observed_pred1,
-                     trajectories_to_plot,
-                     means=(observed_pred.mean.numpy(),
-                            observed_pred1.mean.numpy()),
-                     xlim=[-40, 15],
-                     ylim=[-25, 30],
-                     xlabel="X-position",
-                     ylabel="Y-position",
-                     plot_intervals=False)
+            trajectories_to_plot = [(trajectory.t[0], trajectory.pos[1, :])
+                                    for trajectory in trajectories]
+            self.plot_gp(observed_pred1,
+                         trajectories_to_plot,
+                         means=(test_t.numpy(), observed_pred1.mean.numpy()),
+                         xlim=[0, 6.0],
+                         ylim=[-25, 30],
+                         xlabel="Time",
+                         ylabel="Y-position",
+                         image_name="y_time_GP.png")
 
-        self.plot_3d_traj(trajectories,
-                          test_t,
-                          observed_preds=(observed_pred, observed_pred1))
+            trajectories_to_plot = [(trajectory.pos[0, :],
+                                     trajectory.pos[1, :])
+                                    for trajectory in trajectories]
+            self.plot_gp(observed_pred1,
+                         trajectories_to_plot,
+                         means=(observed_pred.mean.numpy(),
+                                observed_pred1.mean.numpy()),
+                         xlim=[-40, 15],
+                         ylim=[-25, 30],
+                         xlabel="X-position",
+                         ylabel="Y-position",
+                         plot_intervals=False)
+
+            self.plot_3d_traj(trajectories,
+                              test_t,
+                              observed_preds=(observed_pred, observed_pred1))
 
     def plot_gp(self,
                 observed_pred,
@@ -217,7 +221,6 @@ class TestGaussianProcess(unittest.TestCase):
             ax.set_xlabel('Y-position')
             ax.set_ylabel('X-position')
             ax.set_zlabel('Time')
-            # plt.show()
             plt.show()
 
 
