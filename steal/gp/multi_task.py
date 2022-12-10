@@ -79,13 +79,6 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
 
             optimizer.step()
 
-    # GP evaluation
-    def evaluation(self):
-        """Return the likelihood of the data."""
-        self._model.eval()
-        self._likelihood.eval()
-        return self._likelihood
-
 
 class MultitaskApproximateGPModel(ApproximateGP):
     """Multi-output GP trained via Stochastic Variational Inference"""
@@ -187,10 +180,3 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
             print(
                 f'Iter {i+1}/{training_iterations} - Loss: {epoch_loss.item():.3f}'
             )
-
-    # GP evaluation
-    def evaluation(self):
-        """Return the likelihood of the data."""
-        self._model.eval()
-        self._likelihood.eval()
-        return self._likelihood

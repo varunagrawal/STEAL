@@ -70,9 +70,3 @@ class ScalarGaussianProcess(BaseGaussianProcess):
             )
 
             optimizer.step()
-
-    def evaluation(self):
-        """Return the likelihood of the data."""
-        self._model.eval()
-        self._likelihood.eval()
-        return self._likelihood

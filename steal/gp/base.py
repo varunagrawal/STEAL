@@ -22,7 +22,8 @@ class BaseGaussianProcess:
         """Train the GP"""
 
     def evaluate(self, X):
-        """GP evaluation"""
+        """Evaluate the gaussian process at the provided test points `X`."""
+        # Set into eval mode
         self._model.eval()
         self._likelihood.eval()
         return self._likelihood(self._model(X))
