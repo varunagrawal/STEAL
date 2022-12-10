@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from steal.datasets import lasa
-from steal.gp.multi_task import MultitaskApproximateGP
+from steal.gp.multi_task import MultitaskApproximateGaussianProcess
 from steal.utils.plotting.gp import plot_multi_output_gp
 
 
@@ -52,22 +52,16 @@ def main():
 
     num_latents = 3
     num_tasks = 2
-    gp = MultitaskApproximateGP(num_tasks=num_tasks, num_latents=num_latents)
+    gp = MultitaskApproximateGaussianProcess(num_tasks=num_tasks,
+                                             num_latents=num_latents)
 
-    num_epochs = 60
-    gp.training(train_t, train_xy, training_iterations=num_epochs)
-
-    model = gp.get_model()
-    likelihood = gp.evaluation()
-
-    # Set into eval mode
-    model.eval()
-    likelihood.eval()
+    training_iterations = 60
+    gp.train(train_t, train_xy, training_iterations=training_iterations)
 
     # Make predictions
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
         test_t = torch.linspace(0, 6, 1000).double()
-        predictions = likelihood(model(test_t))
+        predictions = gp.evaluate(test_t)
         mean = predictions.mean
         lower, upper = predictions.confidence_region()
 
