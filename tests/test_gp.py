@@ -13,8 +13,12 @@ from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
-from steal.gp import ModelGP, MultitaskApproximateGP, MultitaskExactGP
+from steal.gp import (MultitaskApproximateGaussianProcess,
+                      MultitaskExactGaussianProcess, ScalarGaussianProcess)
 from steal.utils.plotting.gp import plot_3d_traj, plot_gp
+
+# set default printing precision
+torch.set_printoptions(precision=9)
 
 
 def load_trajectories(dataset_name="heee"):
@@ -74,8 +78,8 @@ class TestGaussianProcess(unittest.TestCase):
 
         # GP Model for time vs X position
         # initialize GP
-        m1 = ModelGP(train_t, train_x)
-        model = m1.get_model()
+        m1 = ScalarGaussianProcess(train_t, train_x)
+        model = m1.model()
         m1.training(train_t, train_x, training_iters)
         likelihood = m1.evaluation()
 
@@ -86,8 +90,8 @@ class TestGaussianProcess(unittest.TestCase):
             observed_pred = likelihood(model(test_t))
 
         # GP Model for time vs Y position
-        m2 = ModelGP(train_t, train_y)
-        model1 = m2.get_model()
+        m2 = ScalarGaussianProcess(train_t, train_y)
+        model1 = m2.model()
         m2.training(train_t, train_y, training_iters)
         likelihood1 = m2.evaluation()
 
@@ -173,13 +177,18 @@ class TestMultitaskGP(unittest.TestCase):
 
         return trajectories, train_t, train_xy
 
-    @unittest.skip("Exact multi-output inference is too slow, O(n^3)")
     def test_multi_output_exact_gp(self):
         """Unit test for exact inference on multi-output GP"""
-        trajectories, train_t, train_xy = self.get_data()
+        torch.manual_seed(7648)
 
-        m = MultitaskExactGP(train_t, train_xy, num_tasks=2)
-        model = m.get_model()
+        _, train_t, train_xy = self.get_data()
+
+        # subsample for efficiency
+        train_t = train_t[:1000]
+        train_xy = train_xy[:1000]
+
+        m = MultitaskExactGaussianProcess(train_t, train_xy, num_tasks=2)
+        model = m.model()
 
         training_iterations = 0
         m.training(train_t, train_xy, training_iterations)
@@ -198,17 +207,16 @@ class TestMultitaskGP(unittest.TestCase):
             mean = predictions.mean
             lower, upper = predictions.confidence_region()
 
-        print('Mean')
-        print(mean.shape)
-        print(mean[0:10, :])
-        print('Lower values:')
-        print(lower.shape)
-        print(lower[0:10, :])
-        print('Upper values:')
-        print(upper.shape)
-        print(lower[0:10, :])
-
-        self.plot(trajectories, test_t, mean, lower, upper)
+        assert mean.shape == (1000, 2)
+        torch.testing.assert_close(
+            mean[0],
+            torch.tensor([-30.294394689, 15.628854520]).double())
+        torch.testing.assert_close(
+            lower[0],
+            torch.tensor([-30.787182054, 13.816940166]).double())
+        torch.testing.assert_close(
+            upper[0],
+            torch.tensor([-29.801607323, 17.440768875]).double())
 
     def test_multi_output_variational_gp(self):
         """Unit test for variational inference on multi-output GP"""
@@ -217,11 +225,12 @@ class TestMultitaskGP(unittest.TestCase):
         torch.random.manual_seed(1107)
 
         num_tasks = 2
-        m = MultitaskApproximateGP(num_tasks=num_tasks, num_latents=10)
+        m = MultitaskApproximateGaussianProcess(num_tasks=num_tasks,
+                                                num_latents=10)
 
         m.training(train_t, train_xy, training_iterations=3)
 
-        model = m.get_model()
+        model = m.model()
         likelihood = m.evaluation()
 
         # Set into eval mode
