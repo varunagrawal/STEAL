@@ -3,6 +3,7 @@
 #pylint: disable=arguments-differ
 import numpy as np
 import torch
+from matplotlib import pyplot as plt 
 from gpytorch.distributions import (MultitaskMultivariateNormal,
                                     MultivariateNormal)
 from gpytorch.kernels import MultitaskKernel, RBFKernel, ScaleKernel
@@ -215,7 +216,31 @@ class MultitaskApproximateGP:
         self.likelihood.eval()
         return self.likelihood
     
-    # # GP sampling trajectories 
-    # def sampling(self, mean, covariance, num_trajs):
-    #     return np.random.multivariate_normal(mean=mean, cov=covariance, size=num_trajs)
+    # GP sampling trajectories 
+    def sampling(self, posterior_model, num_samples):
+        """Returns samples from the posterior GP"""
+        return posterior_model.sample(sample_shape=torch.Size((num_samples,)))
+    
+    # GP plotting the samples
+    def plot_samples(self, num_tasks, y_lim, test_x, samples, mean, lower, upper, legend_list):
+        """Visualizes the samples"""
+        fig, axs = plt.subplots(1, num_tasks, figsize=(4 * num_tasks, 3))
+        for task, ax in enumerate(axs):
+
+            # Plot training data as dashed lines       
+            for sample in samples:
+                ax.plot(test_x, sample[:, task], '-')
+
+            # Predictive mean as blue line
+            ax.plot(test_x, mean[:, task], 'b')
+            # Shade in confidence
+            ax.fill_between(test_x, lower[:, task], upper[:, task], alpha=0.5)
+            ax.set_xlim([0, 6.0])
+            ax.set_ylim(y_lim[task])
+            ax.legend(legend_list)
+            ax.set_title(f'Task {task + 1}')
+
+        fig.tight_layout()
+        plt.savefig('sampled_trajectories.png')
+        plt.show()
 
