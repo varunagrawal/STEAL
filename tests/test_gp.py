@@ -13,7 +13,7 @@ from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
-from steal.gp import ModelGP, MultitaskExactGP
+from steal.gp import ModelGP, MultitaskApproximateGP, MultitaskExactGP
 
 
 def load_trajectories(dataset_name="heee"):
@@ -25,16 +25,6 @@ def load_trajectories(dataset_name="heee"):
         raise ValueError(
             "Invalid dataset name specified. Please check the LASA dataset repo for valid names."
         )
-
-
-def train_data(trajectories, i):
-    """
-    Training data.
-    Input is time and output is the position.
-    """
-    X = torch.tensor(trajectories[i].t[0])
-    y = torch.tensor((trajectories[i].pos).T)
-    return X, y
 
 
 def concatenate_trajectories(trajectories):
@@ -225,8 +215,10 @@ class TestGaussianProcess(unittest.TestCase):
 
 
 class TestMultitaskGP(unittest.TestCase):
+    """Unit tests for multi-output Gaussian Processes."""
 
     def get_data(self):
+        """Get the trajectories and training data."""
         trajectories = load_trajectories()
 
         # Concatenating the demos
@@ -240,15 +232,14 @@ class TestMultitaskGP(unittest.TestCase):
         return trajectories, train_t, train_xy
 
     def plot(self, trajectories, test_t, mean, lower, upper):
+        """Plot the trajectory means with the upper and lower confidence intervals."""
         # This contains predictions for both tasks, flattened out
         # The first half of the predictions is for the first task
         # The second half is for the second task
 
         # Initialize plots
-        f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
+        _, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
 
-        # Plot training data as black stars
-        # y1_ax.plot(train_x.detach().numpy(), train_y[:, 0].detach().numpy(), '--')
         # Plot training data as dotted line
         for trajectory in trajectories:
             train_t = trajectory.t[0]
@@ -288,7 +279,7 @@ class TestMultitaskGP(unittest.TestCase):
 
     @unittest.skip("Exact multi-output inference is too slow, O(n^3)")
     def test_multi_output_exact_gp(self):
-        """"""
+        """Unit test for exact inference on multi-output GP"""
         trajectories, train_t, train_xy = self.get_data()
 
         m = MultitaskExactGP(train_t, train_xy, num_tasks=2)
@@ -322,3 +313,47 @@ class TestMultitaskGP(unittest.TestCase):
         print(lower[0:10, :])
 
         self.plot(trajectories, test_t, mean, lower, upper)
+
+    def test_multi_output_variational_gp(self):
+        """Unit test for variational inference on multi-output GP"""
+        trajectories, train_t, train_xy = self.get_data()
+
+        num_tasks = 2
+        m = MultitaskApproximateGP(num_tasks=num_tasks, num_latents=10)
+
+        m.training(train_t, train_xy, training_iterations=30)
+
+        model = m.get_model()
+        likelihood = m.evaluation()
+
+        # Set into eval mode
+        model.eval()
+        likelihood.eval()
+
+        # Make predictions
+        with torch.no_grad(), \
+            gpytorch.settings.fast_pred_var(), \
+                gpytorch.settings.fast_computations():
+            test_t = torch.linspace(0, 6, 1000).float()
+            predictions = likelihood(model(test_t))
+            mean = predictions.mean
+            lower, upper = predictions.confidence_region()
+
+        # Initialize plots
+        fig, axs = plt.subplots(1, num_tasks, figsize=(4 * num_tasks, 3))
+        for task, ax in enumerate(axs):
+            # Plot training data as dotted lines
+            for trajectory in trajectories:
+                ax.plot(trajectory.t[0], trajectory.pos[task, :], '--')
+
+            # Predictive mean as blue line
+            ax.plot(test_t, mean[:, task], 'b')
+            # Shade in confidence
+            ax.fill_between(test_t, lower[:, task], upper[:, task], alpha=0.5)
+            ax.set_ylim([-40, 40])
+            ax.legend(['Observed Data', 'Mean', 'Confidence'])
+            ax.set_title(f'Task {task + 1}')
+
+        fig.tight_layout()
+
+        plt.show()
