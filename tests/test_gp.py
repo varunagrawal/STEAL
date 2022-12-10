@@ -14,6 +14,7 @@ from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
 from steal.gp import ModelGP, MultitaskApproximateGP, MultitaskExactGP
+from steal.utils.plotting.gp import plot_3d_traj, plot_gp
 
 
 def load_trajectories(dataset_name="heee"):
@@ -96,109 +97,50 @@ class TestGaussianProcess(unittest.TestCase):
 
         if "PYTEST_CURRENT_TEST" not in os.environ:
 
+            legend = [
+                'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
+                'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
+                'Observed Demo 7', 'Mean', 'Confidence'
+            ]
             trajectories_to_plot = [(trajectory.t[0], trajectory.pos[0, :])
                                     for trajectory in trajectories]
-            self.plot_gp(observed_pred,
-                         trajectories_to_plot,
-                         means=(test_t.numpy(), observed_pred.mean.numpy()),
-                         xlim=[0, 6.0],
-                         ylim=[-40, 15],
-                         xlabel="Time",
-                         ylabel="X-position",
-                         image_name="x_time_GP.png")
+            plot_gp(observed_pred,
+                    trajectories_to_plot,
+                    means=(test_t.numpy(), observed_pred.mean.numpy()),
+                    legend=legend,
+                    xlim=[0, 6.0],
+                    ylim=[-40, 15],
+                    xlabel="Time",
+                    ylabel="X-position",
+                    image_name="x_time_GP.png")
 
             trajectories_to_plot = [(trajectory.t[0], trajectory.pos[1, :])
                                     for trajectory in trajectories]
-            self.plot_gp(observed_pred1,
-                         trajectories_to_plot,
-                         means=(test_t.numpy(), observed_pred1.mean.numpy()),
-                         xlim=[0, 6.0],
-                         ylim=[-25, 30],
-                         xlabel="Time",
-                         ylabel="Y-position",
-                         image_name="y_time_GP.png")
+            plot_gp(observed_pred1,
+                    trajectories_to_plot,
+                    means=(test_t.numpy(), observed_pred1.mean.numpy()),
+                    legend=legend,
+                    xlim=[0, 6.0],
+                    ylim=[-25, 30],
+                    xlabel="Time",
+                    ylabel="Y-position",
+                    image_name="y_time_GP.png")
 
             trajectories_to_plot = [(trajectory.pos[0, :],
                                      trajectory.pos[1, :])
                                     for trajectory in trajectories]
-            self.plot_gp(observed_pred1,
-                         trajectories_to_plot,
-                         means=(observed_pred.mean.numpy(),
-                                observed_pred1.mean.numpy()),
-                         xlim=[-40, 15],
-                         ylim=[-25, 30],
-                         xlabel="X-position",
-                         ylabel="Y-position",
-                         plot_intervals=False)
+            plot_gp(observed_pred1,
+                    trajectories_to_plot,
+                    means=(observed_pred.mean.numpy(),
+                           observed_pred1.mean.numpy()),
+                    legend=legend,
+                    xlim=[-40, 15],
+                    ylim=[-25, 30],
+                    xlabel="X-position",
+                    ylabel="Y-position",
+                    plot_intervals=False)
 
-            self.plot_3d_traj(trajectories,
-                              test_t,
-                              observed_preds=(observed_pred, observed_pred1))
-
-    def plot_gp(self,
-                observed_pred,
-                trajectories,
-                means,
-                xlim=(0, 6.0),
-                ylim=(-40, 15),
-                xlabel="Time",
-                ylabel="X-position",
-                image_name=None,
-                plot_intervals=True):
-        """Plot the gaussian process with confidence intervales"""
-        # Plot graphs
-        with torch.no_grad():
-            # Initialize plot
-            _, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-            # Get upper and lower confidence bounds
-            lower, upper = observed_pred.confidence_region()
-
-            # Plot training data as dotted lines
-            for x, y in trajectories:
-                ax.plot(x, y, '--')
-
-            # Plot predictive means as blue line
-            ax.plot(means[0], means[1], 'b')
-
-            if plot_intervals:
-                # Shade between the lower and upper confidence bounds
-                ax.fill_between(means[0],
-                                lower.numpy(),
-                                upper.numpy(),
-                                alpha=0.5)
-
-            ax.set_xlim(xlim)
-            ax.set_ylim(ylim)
-            ax.legend([
-                'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
-                'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
-                'Observed Demo 7', 'Mean', 'Confidence'
-            ])
-            ax.set_xlabel(xlabel)
-            ax.set_ylabel(ylabel)
-            if image_name:
-                plt.savefig(image_name)
-
-            plt.show()
-
-    def plot_3d_traj(self, trajectories, test_t, observed_preds):
-
-        with torch.no_grad():
-
-            fig = plt.figure(figsize=(4, 4))
-            ax = fig.add_subplot(111, projection='3d')
-
-            # Plot training data as black stars
-            for trajectory in trajectories:
-                train_x = trajectory.pos[0, :]
-                train_y = trajectory.pos[1, :]
-                ax.plot(train_y, train_x, test_t, '--')
-
-            # Plot predictive means as blue line
-            ax.plot(observed_preds[1].mean.numpy(),
-                    observed_preds[0].mean.numpy(), test_t, 'b')
-            ax.legend([
+            legend = (
                 'Observed Demo 1',
                 'Observed Demo 2',
                 'Observed Demo 3',
@@ -207,11 +149,11 @@ class TestGaussianProcess(unittest.TestCase):
                 'Observed Demo 6',
                 'Observed Demo 7',
                 'Predicted trajectory',
-            ])
-            ax.set_xlabel('Y-position')
-            ax.set_ylabel('X-position')
-            ax.set_zlabel('Time')
-            plt.show()
+            )
+            plot_3d_traj(trajectories,
+                         test_t,
+                         observed_preds=(observed_pred, observed_pred1),
+                         legend=legend)
 
 
 class TestMultitaskGP(unittest.TestCase):
@@ -230,52 +172,6 @@ class TestMultitaskGP(unittest.TestCase):
         train_xy = torch.tensor(train_xy).float()
 
         return trajectories, train_t, train_xy
-
-    def plot(self, trajectories, test_t, mean, lower, upper):
-        """Plot the trajectory means with the upper and lower confidence intervals."""
-        # This contains predictions for both tasks, flattened out
-        # The first half of the predictions is for the first task
-        # The second half is for the second task
-
-        # Initialize plots
-        _, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
-
-        # Plot training data as dotted line
-        for trajectory in trajectories:
-            train_t = trajectory.t[0]
-            train_x = trajectory.pos[0, :]
-            train_y = trajectory.pos[1, :]
-            y1_ax.plot(train_t, train_x, '--')
-            y2_ax.plot(train_t, train_y, '--')
-
-        # Predictive mean as blue line
-        y1_ax.plot(test_t, mean[:, 0].numpy(), 'b')
-        # Shade in confidence
-        y1_ax.fill_between(test_t,
-                           lower[:, 0].numpy(),
-                           upper[:, 0].numpy(),
-                           alpha=0.5)
-        y1_ax.set_ylim([-40, 15])
-        legend = [
-            'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
-            'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
-            'Observed Demo 7', 'Mean', 'Confidence'
-        ]
-        y1_ax.legend(legend)
-        y1_ax.set_title('Observed Values (Likelihood)')
-
-        y2_ax.plot(test_t, mean[:, 1].numpy(), 'b')
-        # Shade in confidence
-        y2_ax.fill_between(test_t,
-                           lower[:, 1].numpy(),
-                           upper[:, 1].numpy(),
-                           alpha=0.5)
-        y2_ax.set_ylim([-25, 30])
-        y2_ax.legend(legend)
-        y2_ax.set_title('Observed Values (Likelihood)')
-        # plt.savefig('y_time.png')
-
-        plt.show()
 
     @unittest.skip("Exact multi-output inference is too slow, O(n^3)")
     def test_multi_output_exact_gp(self):
@@ -316,12 +212,14 @@ class TestMultitaskGP(unittest.TestCase):
 
     def test_multi_output_variational_gp(self):
         """Unit test for variational inference on multi-output GP"""
-        trajectories, train_t, train_xy = self.get_data()
+        _, train_t, train_xy = self.get_data()
+
+        torch.random.manual_seed(1107)
 
         num_tasks = 2
         m = MultitaskApproximateGP(num_tasks=num_tasks, num_latents=10)
 
-        m.training(train_t, train_xy, training_iterations=30)
+        m.training(train_t, train_xy, training_iterations=3)
 
         model = m.get_model()
         likelihood = m.evaluation()
@@ -339,4 +237,20 @@ class TestMultitaskGP(unittest.TestCase):
             mean = predictions.mean
             lower, upper = predictions.confidence_region()
 
-        #TODO(Varun) assert things!!
+        # regression tests for the mean trajectory
+        torch.testing.assert_close(
+            mean[0],
+            torch.tensor([-26.878214315, 11.697209545]).double())
+        torch.testing.assert_close(
+            mean[500],
+            torch.tensor([-22.503201496, -6.546301216]).double())
+        torch.testing.assert_close(
+            mean[-1],
+            torch.tensor([-4.958472397, -4.592620590]).double())
+
+        torch.testing.assert_close(
+            lower[0],
+            torch.tensor([-31.121183753, 6.925952889]).double())
+        torch.testing.assert_close(
+            upper[0],
+            torch.tensor([-22.635244877, 16.468466201]).double())
