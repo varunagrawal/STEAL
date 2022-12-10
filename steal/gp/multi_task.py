@@ -100,6 +100,8 @@ class MultitaskApproximateGPModel(ApproximateGP):
 
     def __init__(self, inducing_points, num_tasks=2, num_latents=3):
 
+        # We have to mark the CholeskyVariationalDistribution as batch
+        # so that we learn a variational distribution for each task
         variational_distribution = CholeskyVariationalDistribution(
             inducing_points.size(-2), batch_shape=torch.Size([num_latents]))
 

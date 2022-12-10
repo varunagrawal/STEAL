@@ -339,21 +339,4 @@ class TestMultitaskGP(unittest.TestCase):
             mean = predictions.mean
             lower, upper = predictions.confidence_region()
 
-        # Initialize plots
-        fig, axs = plt.subplots(1, num_tasks, figsize=(4 * num_tasks, 3))
-        for task, ax in enumerate(axs):
-            # Plot training data as dotted lines
-            for trajectory in trajectories:
-                ax.plot(trajectory.t[0], trajectory.pos[task, :], '--')
-
-            # Predictive mean as blue line
-            ax.plot(test_t, mean[:, task], 'b')
-            # Shade in confidence
-            ax.fill_between(test_t, lower[:, task], upper[:, task], alpha=0.5)
-            ax.set_ylim([-40, 40])
-            ax.legend(['Observed Data', 'Mean', 'Confidence'])
-            ax.set_title(f'Task {task + 1}')
-
-        fig.tight_layout()
-
-        plt.show()
+        #TODO(Varun) assert things!!
