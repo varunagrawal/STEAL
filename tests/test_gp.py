@@ -79,25 +79,21 @@ class TestGaussianProcess(unittest.TestCase):
         # GP Model for time vs X position
         # initialize GP
         m1 = ScalarGaussianProcess(train_t, train_x)
-        model = m1.model()
         m1.training(train_t, train_x, training_iters)
-        likelihood = m1.evaluation()
 
         # Test points are regularly spaced along [0,6]
         # Make predictions by feeding model through likelihood
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
             test_t = torch.linspace(0, 6, 1000).double()
-            observed_pred = likelihood(model(test_t))
+            observed_pred = m1.evaluate(test_t)
 
         # GP Model for time vs Y position
         m2 = ScalarGaussianProcess(train_t, train_y)
-        model1 = m2.model()
         m2.training(train_t, train_y, training_iters)
-        likelihood1 = m2.evaluation()
 
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
             test_t = torch.linspace(0, 6, 1000).double()
-            observed_pred1 = likelihood1(model1(test_t))
+            observed_pred1 = m2.evaluate(test_t)
 
         if "PYTEST_CURRENT_TEST" not in os.environ:
 
@@ -188,22 +184,16 @@ class TestMultitaskGP(unittest.TestCase):
         train_xy = train_xy[:1000]
 
         m = MultitaskExactGaussianProcess(train_t, train_xy, num_tasks=2)
-        model = m.model()
 
         training_iterations = 0
         m.training(train_t, train_xy, training_iterations)
-        likelihood = m.evaluation()
-
-        # Set into eval mode
-        model.eval()
-        likelihood.eval()
 
         # Make predictions
         with torch.no_grad(), \
             gpytorch.settings.fast_pred_var(), \
                 gpytorch.settings.fast_computations():
             test_t = torch.linspace(0, 6, 1000).float()
-            predictions = likelihood(model(test_t))
+            predictions = m.evaluate(test_t)
             mean = predictions.mean
             lower, upper = predictions.confidence_region()
 
@@ -230,19 +220,12 @@ class TestMultitaskGP(unittest.TestCase):
 
         m.training(train_t, train_xy, training_iterations=3)
 
-        model = m.model()
-        likelihood = m.evaluation()
-
-        # Set into eval mode
-        model.eval()
-        likelihood.eval()
-
         # Make predictions
         with torch.no_grad(), \
             gpytorch.settings.fast_pred_var(), \
                 gpytorch.settings.fast_computations():
             test_t = torch.linspace(0, 6, 1000).float()
-            predictions = likelihood(model(test_t))
+            predictions = m.evaluate(test_t)
             mean = predictions.mean
             lower, upper = predictions.confidence_region()
 
