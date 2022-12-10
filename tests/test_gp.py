@@ -283,6 +283,7 @@ class TestMultitaskGP(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skip("Exact multi-output inference is too slow, O(n^3)")
     def test_multi_output_exact_gp(self):
         """"""
         trajectories, train_t, train_xy = self.get_data()
