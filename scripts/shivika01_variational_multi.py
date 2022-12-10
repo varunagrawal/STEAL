@@ -10,7 +10,9 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from steal.datasets import lasa
+# from steal.datasets import lasa
+import pyLasaDataset as lasa
+
 from steal.gp.multi_task import MultitaskApproximateGP
 
 
@@ -67,9 +69,11 @@ def main():
     # Make predictions
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
         test_t = torch.linspace(0, 6, 1000).double()
-        predictions = likelihood(model(test_t))
+        f_preds = model(test_t)
+        predictions = likelihood(f_preds)
         mean = predictions.mean
         lower, upper = predictions.confidence_region()
+        samples = f_preds.sample(sample_shape=torch.Size(1000,2)) #sampling 
 
     # Initialize plots
     fig, axs = plt.subplots(1, num_tasks, figsize=(4 * num_tasks, 3))

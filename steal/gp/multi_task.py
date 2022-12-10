@@ -1,7 +1,7 @@
 """Module for multi-task/vector-valued Gaussian Processes"""
 
 #pylint: disable=arguments-differ
-
+import numpy as np
 import torch
 from gpytorch.distributions import (MultitaskMultivariateNormal,
                                     MultivariateNormal)
@@ -214,3 +214,8 @@ class MultitaskApproximateGP:
         self.model.eval()
         self.likelihood.eval()
         return self.likelihood
+    
+    # # GP sampling trajectories 
+    # def sampling(self, mean, covariance, num_trajs):
+    #     return np.random.multivariate_normal(mean=mean, cov=covariance, size=num_trajs)
+
