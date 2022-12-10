@@ -183,7 +183,7 @@ class TestMultitaskGP(unittest.TestCase):
 
         m = MultitaskExactGaussianProcess(train_t, train_xy, num_tasks=2)
 
-        m.training(train_t, train_xy, training_iterations=1)
+        m.train(train_t, train_xy, training_iterations=1)
 
         # Make predictions
         with torch.no_grad(), \

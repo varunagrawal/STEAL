@@ -48,7 +48,7 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
 
         self._model.double()
 
-    def training(self, X, y, training_iterations, lr=0.1):
+    def train(self, X, y, training_iterations, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
         # Find optimal model hyperparameters
