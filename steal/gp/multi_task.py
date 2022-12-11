@@ -3,7 +3,6 @@
 #pylint: disable=arguments-differ
 import numpy as np
 import torch
-from matplotlib import pyplot as plt 
 from gpytorch.distributions import (MultitaskMultivariateNormal,
                                     MultivariateNormal)
 from gpytorch.kernels import MultitaskKernel, RBFKernel, ScaleKernel
@@ -13,6 +12,7 @@ from gpytorch.mlls import ExactMarginalLogLikelihood, VariationalELBO
 from gpytorch.models import ApproximateGP, ExactGP
 from gpytorch.variational import (CholeskyVariationalDistribution,
                                   LMCVariationalStrategy, VariationalStrategy)
+from matplotlib import pyplot as plt
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -180,16 +180,3 @@ class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
             print(
                 f'Iter {i+1}/{training_iterations} - Loss: {epoch_loss.item():.3f}'
             )
-
-    # GP evaluation
-    def evaluation(self):
-        """Return the likelihood of the data."""
-        self.model.eval()
-        self.likelihood.eval()
-        return self.likelihood
-    
-    # GP sampling trajectories 
-    def sampling(self, posterior_model, num_samples):
-        """Returns samples from the posterior GP"""
-        return posterior_model.sample(sample_shape=torch.Size((num_samples,)))
-    

@@ -1,7 +1,7 @@
 """
-Script to run variational inference on a
-multi-output Gaussian Process on the LASA dataset.
-python scripts/shivika01_variatonal_multi.py
+Script to train a GP and sample from it.
+
+python scripts/shivika02_gp_sampling.py
 """
 
 import gpytorch
@@ -38,6 +38,7 @@ def main():
         predictions = gp.evaluate(test_t)
         mean = predictions.mean
         lower, upper = predictions.confidence_region()
+        samples = gp.samples(test_t, 10)
 
     x_lim = [0, 6.0]
     y_lims = [[-40, 15], [-25, 30]]
@@ -50,6 +51,14 @@ def main():
                          x_lim=x_lim,
                          y_lims=y_lims,
                          image_name='multi_VGP.png')
+
+    legend_list = [ 
+        'Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5',
+        'Sample 6', 'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10',
+        'Mean', 'Confidence'
+    ]
+    # Sample visualization
+    gp.plot_samples(num_tasks, y_lims, test_t, samples, mean, lower, upper, legend_list)
 
 
 if __name__ == "__main__":

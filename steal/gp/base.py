@@ -2,6 +2,8 @@
 
 #pylint: disable=not-callable
 
+import torch
+
 
 class BaseGaussianProcess:
     """Gaussian process base class."""
@@ -21,15 +23,17 @@ class BaseGaussianProcess:
     def train(self, X, y, training_iterations, lr=0.1):
         """Train the GP"""
 
-    def evaluate(self, X):
-        """Evaluate the gaussian process at the provided test points `X`."""
+    def evaluate(self, x):
+        """Return the Gaussian posterior at the provided test points `x`."""
         # Set into eval mode
         self._model.eval()
         self._likelihood.eval()
-        return self._likelihood(self._model(X))
+        return self._likelihood(self._model(x))
 
-    def sample(self):
+    def samples(self, x, num_samples):
         """
-        Sample a function (e.g. a trajectory)
-        from the gaussian process.
+        Return samples (e.g. a trajectory)
+        from the posterior gaussian process.
         """
+        posterior_model = self.evaluate(x)
+        return posterior_model.sample(sample_shape=torch.Size((num_samples, )))

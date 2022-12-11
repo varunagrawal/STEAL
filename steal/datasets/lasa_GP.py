@@ -1,13 +1,14 @@
 """Module for sampling LASA trajectories from GP model."""
 
+import gpytorch
 import numpy as np
 import pyLasaDataset as lasa
 import torch
-import gpytorch
 from matplotlib import pyplot as plt
 
 from steal.datasets import lasa
-from steal.gp.multi_task import MultitaskApproximateGP
+from steal.gp.multi_task import MultitaskApproximateGaussianProcess
+
 
 def load_trajectories(dataset_name="heee"):
     """Load the demontstration trajectories from LASA with the name"""
@@ -32,7 +33,8 @@ def concatenate_trajectories(trajectories):
              trajectory.pos.T)) if train_xy.size else trajectory.pos.T
     return train_t, train_xy
 
-def get_lasa_samples(dataset_name ="heee", sample_num = 10):
+
+def get_lasa_samples(dataset_name="heee", sample_num=10):
     """ Get LASA trajectory samples from GP model
 
         input: dataset_name (String), sample_num (int)
@@ -51,7 +53,8 @@ def get_lasa_samples(dataset_name ="heee", sample_num = 10):
 
     num_latents = 3
     num_tasks = 2
-    gp = MultitaskApproximateGP(num_tasks=num_tasks, num_latents=num_latents)
+    gp = MultitaskApproximateGaussianProcess(num_tasks=num_tasks,
+                                             num_latents=num_latents)
 
     num_epochs = 60
     gp.training(train_t, train_xy, training_iterations=num_epochs)
@@ -70,6 +73,6 @@ def get_lasa_samples(dataset_name ="heee", sample_num = 10):
         predictions = likelihood(preds)
         mean = predictions.mean
         lower, upper = predictions.confidence_region()
-        samples = gp.sampling(preds, 10) 
+        samples = gp.sampling(preds, 10)
 
-    return samples 
+    return samples
