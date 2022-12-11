@@ -15,6 +15,8 @@ from gpytorch.variational import (CholeskyVariationalDistribution,
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
 
+from steal.gp.base import BaseGaussianProcess
+
 
 class MultitaskExactGPModel(ExactGP):
     """
@@ -35,64 +37,46 @@ class MultitaskExactGPModel(ExactGP):
         return MultitaskMultivariateNormal(mean_x, covar_x)
 
 
-class MultitaskExactGP:
+class MultitaskExactGaussianProcess(BaseGaussianProcess):
     """Define a multi-output exact GP model"""
 
-    def __init__(self, X, y, num_tasks=2, lr=0.1):
-        self.likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
-        # self.model = MultitaskExactGPModel(train_t, train_xy, likelihood)
-        self.model = MultitaskExactGPModel(X, y, self.likelihood)
+    def __init__(self, X, y, num_tasks=2):
+        super().__init__()
+
+        self._likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
+        self._model = MultitaskExactGPModel(X, y, self._likelihood)
+
+        self._model.double()
+
+    def train(self, X, y, training_iterations, lr=0.1):
+        """Run Type II MLE to get the best prior hyperparameters."""
 
         # Find optimal model hyperparameters
-        self.model.train()
-        self.likelihood.train()
+        self._model.train()
+        self._likelihood.train()
 
         # Use the adam optimizer
         # Includes GaussianLikelihood parameters
-        self.optimizer = Adam(self.model.parameters(), lr=lr)
+        optimizer = Adam(self._model.parameters(), lr=lr)
 
         # "Loss" for GPs - the marginal log likelihood
-        self.mll = ExactMarginalLogLikelihood(self.likelihood, self.model)
-        self.model.double()
+        mll = ExactMarginalLogLikelihood(self._likelihood, self._model)
 
-    def get_model(self):
-        """Return the GP model"""
-        return self.model
-
-    def get_optimizer(self):
-        """Return the optimizer"""
-        return self.optimizer
-
-    def get_likelihood(self):
-        """Return the likelihood function."""
-        return self.likelihood
-
-    def training(self, train_input, train_output, training_iters):
-        """Run Type II MLE to get the best prior hyperparameters."""
-
-        for i in range(training_iters):
+        for i in range(training_iterations):
             # Zero gradients from previous iteration
-            self.optimizer.zero_grad()
+            optimizer.zero_grad()
             # Output from model
-            output = self.model(train_input)
+            output = self._model(X)
 
             # Calc loss and backprop gradients
-            loss = -self.mll(output, train_output)
+            loss = -mll(output, y)
             loss.backward()
             print(
-                f'Iter {i+1}/{training_iters} - Loss: {loss.item():.3f}' \
-                f'   lengthscale: {self.model.covar_module.base_kernel.lengthscale.item():.3f}'\
-                f'   noise: {self.model.likelihood.noise.item():.3f}'
+                f'Iter {i+1}/{training_iterations} - Loss: {loss.item():.3f}' \
+                f'   noise: {self._model.likelihood.noise.item():.3f}'
             )
 
-            self.optimizer.step()
-
-    # GP evaluation
-    def evaluation(self):
-        """Return the likelihood of the data."""
-        self.model.eval()
-        self.likelihood.eval()
-        return self.likelihood
+            optimizer.step()
 
 
 class MultitaskApproximateGPModel(ApproximateGP):
@@ -131,39 +115,29 @@ class MultitaskApproximateGPModel(ApproximateGP):
         return MultivariateNormal(mean_x, covar_x)
 
 
-class MultitaskApproximateGP:
+class MultitaskApproximateGaussianProcess(BaseGaussianProcess):
     """Define a multi-output variational GP model"""
 
     def __init__(self, num_tasks=2, num_latents=3):
+        super().__init__()
 
         # Let's use a different set of inducing points for each latent function
         inducing_points = torch.rand(num_latents, 16, 1)
-        self.model = MultitaskApproximateGPModel(inducing_points, num_tasks,
-                                                 num_latents)
+        self._model = MultitaskApproximateGPModel(inducing_points, num_tasks,
+                                                  num_latents)
+        self._model.double()
 
-        self.likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
+        self._likelihood = MultitaskGaussianLikelihood(num_tasks=num_tasks)
 
-    def get_model(self):
-        """Return the GP model"""
-        return self.model
-
-    def get_optimizer(self):
-        """Return the optimizer"""
-        return self.optimizer
-
-    def get_likelihood(self):
-        """Return the likelihood function."""
-        return self.likelihood
-
-    def training(self, train_x, train_y, training_iterations, lr=0.1):
+    def train(self, X, y, training_iterations, lr=0.1):
         """Run Type II MLE to get the best prior hyperparameters."""
 
-        train_dataset = TensorDataset(train_x, train_y)
+        train_dataset = TensorDataset(X, y)
         train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True)
 
         # Find optimal model hyperparameters
-        self.model.train()
-        self.likelihood.train()
+        self._model.train()
+        self._likelihood.train()
 
         if torch.cuda.is_available():
             model = model.cuda()
@@ -171,18 +145,16 @@ class MultitaskApproximateGP:
 
         # Use the adam optimizer
         params = [{
-            'params': self.model.parameters()
+            'params': self._model.parameters()
         }, {
-            'params': self.likelihood.parameters()
+            'params': self._likelihood.parameters()
         }]
         optimizer = torch.optim.Adam(params, lr=lr)
 
         # Our loss object. We're using the VariationalELBO for variational inference.
-        mll = VariationalELBO(self.likelihood,
-                              self.model,
-                              num_data=train_y.size(0))
-
-        self.model.double()
+        mll = VariationalELBO(self._likelihood,
+                              self._model,
+                              num_data=y.size(0))
 
         for i in range(training_iterations):
             epoch_loss = 0
@@ -191,7 +163,7 @@ class MultitaskApproximateGP:
                 optimizer.zero_grad()
 
                 # Output from model
-                output = self.model(x_batch)
+                output = self._model(x_batch)
 
                 # Calc loss and backprop gradients
                 loss = -mll(output, y_batch)
@@ -205,12 +177,4 @@ class MultitaskApproximateGP:
             # normalize the total loss from the epoch
             epoch_loss /= len(train_loader)
             print(
-                f'Iter {i+1}/{training_iterations} - Loss: {epoch_loss.item():.3f}'
-            )
-
-    # GP evaluation
-    def evaluation(self):
-        """Return the likelihood of the data."""
-        self.model.eval()
-        self.likelihood.eval()
-        return self.likelihood
+                f'Iter {i+1}/{training_iterations} - Loss: {epoch_loss.item():.3f}')
