@@ -2,15 +2,12 @@
 
 import unittest
 
-import numpy as np
 import torch
-from matplotlib import pyplot as plt
 
 from steal.rmpflow import (ObstacleAvoidanceForceController,
                            SphereDistanceTaskMap, TargetForceControllerUniform,
                            TargetTaskMap)
 from steal.rmpflow.rmp_tree import RmpTreeNode
-from steal.utils.plotting import plot_traj_2D
 
 
 class TestRMPFlow(unittest.TestCase):

@@ -7,7 +7,7 @@ from steal.rmpflow.controllers import (ObstacleAvoidanceForceController,
                                        TargetForceControllerUniform)
 from steal.rmpflow.kinematics import SphereDistanceTaskMap, TargetTaskMap
 from steal.rmpflow.rmp_tree import RmpTreeNode
-from steal.utils.plotting import plot_traj_2D, plt
+from steal.utils.plotting.rmpflow import plot_traj_2D, plt
 
 torch.set_default_dtype(torch.float32)
 
