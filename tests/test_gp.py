@@ -14,31 +14,7 @@ from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
 from steal.gp import ModelGP, MultitaskApproximateGP, MultitaskExactGP
-
-
-def load_trajectories(dataset_name="heee"):
-    """Load the demontstration trajectories from LASA with the name"""
-    if hasattr(lasa.DataSet, dataset_name):
-        dataset = getattr(lasa.DataSet, dataset_name)
-        return dataset.demos
-    else:
-        raise ValueError(
-            "Invalid dataset name specified. Please check the LASA dataset repo for valid names."
-        )
-
-
-def concatenate_trajectories(trajectories):
-    """Concatenate the input into a single array"""
-    train_t = np.empty((0, ))
-    train_xy = np.empty((0, 2))
-    for i, trajectory in enumerate(trajectories):
-        train_t = np.hstack(
-            (train_t, trajectory.t[0])) if train_t.size else trajectory.t[0]
-        train_xy = np.vstack(
-            (train_xy,
-             trajectory.pos.T)) if train_xy.size else trajectory.pos.T
-    return train_t, train_xy
-
+from steal.datasets.lasa_GP import load_trajectories, concatenate_trajectories, get_lasa_samples
 
 class TestGaussianProcess(unittest.TestCase):
     """Tests for a scalar valued Gaussian Process on the LASA dataset."""
@@ -340,3 +316,10 @@ class TestMultitaskGP(unittest.TestCase):
             lower, upper = predictions.confidence_region()
 
         #TODO(Varun) assert things!!
+    
+    def test_get_lasa_samples(self):
+        """Unit test for getting LASA samples on variational inference on multi-output GP"""
+        samples = get_lasa_samples("heee", 10)
+        assert len(samples) == 10
+        assert samples.shape == (10, 1000,2)
+        

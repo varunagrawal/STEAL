@@ -12,31 +12,7 @@ from matplotlib import pyplot as plt
 
 from steal.datasets import lasa
 from steal.gp.multi_task import MultitaskApproximateGP
-
-
-def load_trajectories(dataset_name="heee"):
-    """Load the demontstration trajectories from LASA with the name"""
-    if hasattr(lasa.DataSet, dataset_name):
-        dataset = getattr(lasa.DataSet, dataset_name)
-        return dataset.demos
-    else:
-        raise ValueError(
-            "Invalid dataset name specified. Please check the LASA dataset repo for valid names."
-        )
-
-
-def concatenate_trajectories(trajectories):
-    """Concatenate the input into a single array"""
-    train_t = np.empty((0, ))
-    train_xy = np.empty((0, 2))
-    for i, trajectory in enumerate(trajectories):
-        train_t = np.hstack(
-            (train_t, trajectory.t[0])) if train_t.size else trajectory.t[0]
-        train_xy = np.vstack(
-            (train_xy,
-             trajectory.pos.T)) if train_xy.size else trajectory.pos.T
-    return train_t, train_xy
-
+from steal.datasets.lasa_GP import load_trajectories, concatenate_trajectories
 
 def main():
     """Main runner"""
@@ -72,7 +48,7 @@ def main():
         mean = predictions.mean
         lower, upper = predictions.confidence_region()
         samples = gp.sampling(preds, 10) 
-        print(samples.shape)
+        print(type(samples))
     
     # Initialize plots
     fig, axs = plt.subplots(1, num_tasks, figsize=(4 * num_tasks, 3))
