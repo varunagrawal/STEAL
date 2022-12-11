@@ -1,68 +1,95 @@
-\documentclass[letterpaper, 10 pt, conference]{ieeeconf}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
 
-%\usepackage{corl_2022} % Use this for the initial submission.
-%\usepackage[final]{corl_2022} % Uncomment for the camera-ready ``final'' version.
-%\usepackage[preprint]{corl_2022} % Uncomment for pre-prints (e.g., arxiv); This is like ``final'', but will remove the CORL footnote.
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
 
-\title{STEAL: Simultaneous Trajectory Estimation And Learning}
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
 
-% The \author macro works with any number of authors. There are two
-% commands used to separate the names and addresses of multiple
-% authors: \And and \AND.
-%
-% Using \And between authors leaves it to LaTeX to determine where to
-% break the lines. Using \AND forces a line break at that point. So,
-% if LaTeX puts 3 of 4 authors names on the first line, and the last
-% on the second line, try using \AND instead of \And before the third
-% author name.
+\IEEEoverridecommandlockouts                              % This command is only needed if
+% you want to use the \thanks command
 
-% NOTE: authors will be visible only in the camera-ready and preprint versions (i.e., when using the option 'final' or 'preprint'). 
-% 	For the initial submission the authors will be anonymized.
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
 
-\author{
-  Team 11\\
-  CS 7648\\
-  Georgia Institute of Technology
-  United States\\
-  \texttt{\{varunagrawal,ssingh794,yahn41\}@gatech.edu} \\
-  %% examples of more authors
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \AND
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
+%In case you encounter the following error:
+%Error 1010 The PDF file may be corrupt (unable to open PDF file) OR
+%Error 1000 An error occurred while parsing a contents stream. Unable to analyze the PDF file.
+%This is a known problem with pdfLaTeX conversion filter. The file cannot be opened with acrobat reader
+%Please use one of the alternatives below to circumvent this error by uncommenting one or the other
+%\pdfobjcompresslevel=0
+%\pdfminorversion=4
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+\usepackage{graphics} % for pdf, bitmapped graphics files
+\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{multicol}
+\usepackage[bookmarks=true]{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{svg}
+%\usepackage{subfigure}
+\usepackage{subcaption}
+
+\usepackage[backend=bibtex,style=ieee,natbib=true,mincitenames=1,maxcitenames=2]{biblatex}
+\addbibresource{refs.bib}
+
+\newcommand{\etal}{\textit{et al}. }
+\newcommand{\ie}{\textit{i}.\textit{e}., }
+\newcommand{\eg}{\textit{e}.\textit{g}. }
+
+\newcommand{\Varun}[1]{\textcolor{green}{Varun: #1}}
+\newcommand{\Shivika}[1]{\textcolor{red}{Frank: #1}}
+\newcommand{\Yuri}[1]{\textcolor{yellow}{Robert: #1}}
+
+% Increaset spacing in table rows
+\renewcommand{\arraystretch}{1.1}
+
+
+\title{\LARGE \bf
+    Simultaneous Trajectory Estimation and Learning
+}
+
+
+\author{Shivika Singh$^{1}$, Yuri Ahn$^{1}$, Varun Agrawal$^{1}$% <-this % stops a space
+    % \thanks{*This work was not supported by any organization}% <-this % stops a space
+    \thanks{$^{1}$College of Computing, Georgia Institute of Technology, Atlanta, GA 30332 USA. Author names in lastname reverse alphabetical order.
+        {\tt\small \{ssingh794,yahn41,varunagrawal\}@gatech.edu}}%
 }
 
 
 \begin{document}
-\maketitle
-
-\input{01_intro}
-\input{02_related_work}
-\vspace{-3.5em}
-
-%\clearpage
-% The acknowledgments are automatically included only in the final and preprint versions of the paper.
-%\acknowledgments{If a paper is accepted, the final camera-ready version will (and probably should) include acknowledgments. All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support.}
-
-%===============================================================================
-
-% no \bibliographystyle is required, since the corl style is automatically used.
-\bibliography{refs}  % .bib
-
+    
+    
+    
+    \maketitle
+    \thispagestyle{empty}
+    \pagestyle{empty}
+    
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{abstract}
+    \end{abstract}
+    
+    \input{01_introduction}
+    \input{02_related_work}
+    \input{03_preliminaries}
+    \input{04_method}
+    \input{05_results}
+    \input{06_discussion}
+    \input{07_conclusion}
+    
+    
+    
+    \newpage
+    \printbibliography
+    
+    
 \end{document}
