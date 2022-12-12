@@ -34,14 +34,18 @@ def concatenate_trajectories(trajectories):
     return train_t, train_xy
 
 
-def get_lasa_samples(dataset_name="heee", sample_num=10):
-    """ Get LASA trajectory samples from GP model
+def get_lasa_samples(dataset_name="heee", num_samples=10):
+    """Get samples from a GP model trained on a LASA dataset.
 
-        input: dataset_name (String), sample_num (int)
-        output: samples (torch.Tensor)
+    Args:
+        dataset_name (str, optional): The specific shape dataset. Defaults to "heee".
+        num_samples (int, optional): Then number of samples to return. Defaults to 10.
 
+    Returns:
+        torch.Tensor: Trajectory samples.
     """
-    trajectories = load_trajectories()
+
+    trajectories = load_trajectories(dataset_name=dataset_name)
 
     # Concatenating the demos
     train_t, train_xy = concatenate_trajectories(trajectories)
@@ -57,22 +61,11 @@ def get_lasa_samples(dataset_name="heee", sample_num=10):
                                              num_latents=num_latents)
 
     num_epochs = 60
-    gp.training(train_t, train_xy, training_iterations=num_epochs)
-
-    model = gp.get_model()
-    likelihood = gp.evaluation()
-
-    # Set into eval mode
-    model.eval()
-    likelihood.eval()
+    gp.train(train_t, train_xy, training_iterations=num_epochs)
 
     # Make predictions
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
         test_t = torch.linspace(0, 6, 1000).double()
-        preds = model(test_t)
-        predictions = likelihood(preds)
-        mean = predictions.mean
-        lower, upper = predictions.confidence_region()
-        samples = gp.sampling(preds, 10)
+        samples = gp.samples(test_t, num_samples)
 
     return samples
