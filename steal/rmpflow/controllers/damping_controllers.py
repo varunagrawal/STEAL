@@ -11,6 +11,7 @@ class DampingForceController(NaturalGradientDescentForceController):
                  ds_type='gds',
                  device=torch.device('cpu')):
         self.damping_gain = damping_gain
+        # The Riemannian metric
         G = IdentityMetric(scaling=1., device=device)
         Phi = ZeroPotential(device=device)
         del_Phi = Phi.grad

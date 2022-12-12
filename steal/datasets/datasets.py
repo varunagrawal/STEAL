@@ -146,11 +146,11 @@ class ContextMomentumDataset(Dataset):
     def __getitem__(self, index):
         x_batch = {
             'state': self.state[index],
-            'q_leaf_list': [q_leaf[index] for q_leaf in self.q_leaf_list],
-            'J_list': [J[index] for J in self.J_list],
-            'momentum_list':
+            'q_leaves': [q_leaf[index] for q_leaf in self.q_leaf_list],
+            'jacobians': [J[index] for J in self.J_list],
+            'momentums':
             [momentum[index] for momentum in self.momentum_list],
-            'metric_list': [metric[index] for metric in self.metric_list]
+            'metrics': [metric[index] for metric in self.metric_list]
         }
         y_batch = self.qd_config[index]
         return x_batch, y_batch
