@@ -1,0 +1,10 @@
+Gaussian Process
+\begin{itemize}
+    \item Simple Gaussian Process with Exact Inference \\
+    \item Multitask Gaussian Process with Exact Inference \\ 
+    This GP was tested next because of its ability to perform regression on multiple functions (x and y) which have the same input (t). The inference strategy used in this GP results in the covariance matrix $\Sigma$ that is of size $MN X MN$, where $M$ is the number of tasks and $N$ is the number of inputs. Due to this, the matrix can grow to be extremely large and sparse. In addition, the mean prediction for every new data point requires the inverse of $\Sigma$. As a result, generating this large covariance matrix and taking the inverse caused process to be too heavy and slow for our purposes. 
+    \item Variational Multitask Gaussian Process \\
+    The final model we tested was the Linear Model of Coregionalization (LMC) Variational Multitask Gaussian Process, a batch variational GP. Variational GPs help solve the issue of exact inference methods being too computationally heavy. The main components of Variational GPs are the variational distribution, variational strategy, and approixmate marginal log likelihood. The LMC Variational Multitask GP model uses Cholesky variational distribution and variational strategy. \Yuri{Need to maybe explain what LMC is}
+    
+    
+\end{itemize}
