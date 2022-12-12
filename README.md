@@ -8,11 +8,11 @@ pip install poetry
 poetry install
 
 # For Linux/Windows/Intel Macs
-poetry run pip install -U torch gpytorch pytorch-lightning
+poetry run pip install -U torch gpytorch pytorch-lightning torchdiffeq
 
 # For Apple Silicon
 poetry run pip install --pre torch --extra-index-url https://download.pytorch.org/whl/nightly/cpu
-poetry run pip install -U gpytorch pytorch-lightning
+poetry run pip install -U gpytorch pytorch-lightning torchdiffeq
 ```
 
 ## Datasets

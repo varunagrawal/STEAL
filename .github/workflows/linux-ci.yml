@@ -36,7 +36,7 @@ jobs:
       - name: Install Project
         run: |
           poetry install
-          poetry run pip install -U torch gpytorch
+          poetry run pip install -U torch gpytorch pytorch-lightning torchdiffeq
 
       - name: Run Tests
         run: poetry run pytest
