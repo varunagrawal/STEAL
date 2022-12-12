@@ -13,36 +13,14 @@ from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
 
 from steal.datasets import lasa
+from steal.datasets.lasa_GP import (concatenate_trajectories, get_lasa_samples,
+                                    load_trajectories)
 from steal.gp import (MultitaskApproximateGaussianProcess,
                       MultitaskExactGaussianProcess, ScalarGaussianProcess)
 from steal.utils.plotting.gp import plot_3d_traj, plot_gp
 
 # set default printing precision
 torch.set_printoptions(precision=9)
-
-
-def load_trajectories(dataset_name="heee"):
-    """Load the demontstration trajectories from LASA with the name"""
-    if hasattr(lasa.DataSet, dataset_name):
-        dataset = getattr(lasa.DataSet, dataset_name)
-        return dataset.demos
-    else:
-        raise ValueError(
-            "Invalid dataset name specified. Please check the LASA dataset repo for valid names."
-        )
-
-
-def concatenate_trajectories(trajectories):
-    """Concatenate the input into a single array"""
-    train_t = np.empty((0, ))
-    train_xy = np.empty((0, 2))
-    for i, trajectory in enumerate(trajectories):
-        train_t = np.hstack(
-            (train_t, trajectory.t[0])) if train_t.size else trajectory.t[0]
-        train_xy = np.vstack(
-            (train_xy,
-             trajectory.pos.T)) if train_xy.size else trajectory.pos.T
-    return train_t, train_xy
 
 
 class TestGaussianProcess(unittest.TestCase):
@@ -227,19 +205,35 @@ class TestMultitaskGP(unittest.TestCase):
             lower, upper = predictions.confidence_region()
 
         # regression tests for the mean trajectory
-        torch.testing.assert_close(
-            mean[0],
-            torch.tensor([-26.878214315, 11.697209545]).double(), atol=1e-6, rtol=1e-6)
-        torch.testing.assert_close(
-            mean[500],
-            torch.tensor([-22.503201496, -6.546301216]).double(), atol=1e-6, rtol=1e-6)
-        torch.testing.assert_close(
-            mean[-1],
-            torch.tensor([-4.958472397, -4.592620590]).double(), atol=1e-6, rtol=1e-6)
+        torch.testing.assert_close(mean[0],
+                                   torch.tensor([-26.878214315,
+                                                 11.697209545]).double(),
+                                   atol=1e-6,
+                                   rtol=1e-6)
+        torch.testing.assert_close(mean[500],
+                                   torch.tensor([-22.503201496,
+                                                 -6.546301216]).double(),
+                                   atol=1e-6,
+                                   rtol=1e-6)
+        torch.testing.assert_close(mean[-1],
+                                   torch.tensor([-4.958472397,
+                                                 -4.592620590]).double(),
+                                   atol=1e-6,
+                                   rtol=1e-6)
 
-        torch.testing.assert_close(
-            lower[0],
-            torch.tensor([-31.121183753, 6.925952889]).double(), atol=1e-6, rtol=1e-6)
-        torch.testing.assert_close(
-            upper[0],
-            torch.tensor([-22.635244877, 16.468466201]).double(), atol=1e-6, rtol=1e-6)
+        torch.testing.assert_close(lower[0],
+                                   torch.tensor([-31.121183753,
+                                                 6.925952889]).double(),
+                                   atol=1e-6,
+                                   rtol=1e-6)
+        torch.testing.assert_close(upper[0],
+                                   torch.tensor([-22.635244877,
+                                                 16.468466201]).double(),
+                                   atol=1e-6,
+                                   rtol=1e-6)
+
+    def test_get_lasa_samples(self):
+        """Unit test for getting LASA samples on variational inference on multi-output GP"""
+        samples = get_lasa_samples("heee", 10)
+        assert len(samples) == 10
+        assert samples.shape == (10, 1000, 2)

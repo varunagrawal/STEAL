@@ -1,7 +1,7 @@
 """
-Script to run variational inference on a
-multi-output Gaussian Process on the LASA dataset.
-python scripts/shivika01_variatonal_multi.py
+Script to train a GP and sample from it.
+
+python scripts/shivika02_gp_sampling.py
 """
 
 import gpytorch
@@ -9,7 +9,7 @@ import torch
 
 from steal.datasets.lasa_GP import concatenate_trajectories, load_trajectories
 from steal.gp.multi_task import MultitaskApproximateGaussianProcess
-from steal.utils.plotting.gp import plot_multi_output_gp
+from steal.utils.plotting.gp import plot_samples
 
 
 def main():
@@ -32,24 +32,26 @@ def main():
     training_iterations = 60
     gp.train(train_t, train_xy, training_iterations=training_iterations)
 
-    # Make predictions
+    test_t = torch.linspace(0, 6, 1000).double()
+
+    # Compute posterior for the test data
+    posterior = gp.posterior(test_t)
+    samples = gp.samples(test_t, 10)
+
+    # Compute the confidence interval for the posterior
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
-        test_t = torch.linspace(0, 6, 1000).double()
-        predictions = gp.evaluate(test_t)
-        mean = predictions.mean
-        lower, upper = predictions.confidence_region()
+        mean = posterior.mean
+        lower, upper = posterior.confidence_region()
 
     x_lim = [0, 6.0]
     y_lims = [[-40, 15], [-25, 30]]
-    plot_multi_output_gp(trajectories,
-                         test_t,
-                         mean,
-                         lower,
-                         upper,
-                         num_tasks=2,
-                         x_lim=x_lim,
-                         y_lims=y_lims,
-                         image_name='multi_VGP.png')
+    legend_list = [
+        'Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6',
+        'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10', 'Mean', 'Confidence'
+    ]
+    # Sample visualization
+    plot_samples(num_tasks, test_t, samples, mean, lower, upper, legend_list,
+                 x_lim, y_lims)
 
 
 if __name__ == "__main__":

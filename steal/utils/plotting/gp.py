@@ -110,3 +110,37 @@ def plot_multi_output_gp(trajectories,
         plt.savefig(image_name)
 
     plt.show()
+
+
+def plot_samples(num_tasks,
+                 test_x,
+                 samples,
+                 mean,
+                 lower,
+                 upper,
+                 legend=('Sample 1', 'Sample 2', 'Sample 3', 'Sample 4',
+                         'Sample 5', 'Sample 6', 'Sample 7', 'Sample 8',
+                         'Sample 9', 'Sample 10', 'Mean', 'Confidence'),
+                 x_lim=(0, 6.0),
+                 y_lims=([-40, 15], [-25, 30]),
+                 filename="sampled_trajectories.png"):
+    """Visualize the samples from a GP"""
+    fig, axs = plt.subplots(1, num_tasks, figsize=(4 * num_tasks, 3))
+
+    for task, ax in enumerate(axs):
+        # Plot training data as dashed lines
+        for sample in samples:
+            ax.plot(test_x, sample[:, task], '-')
+
+        # Predictive mean as blue line
+        ax.plot(test_x, mean[:, task], 'b')
+        # Shade in confidence
+        ax.fill_between(test_x, lower[:, task], upper[:, task], alpha=0.5)
+        ax.set_xlim(x_lim)
+        ax.set_ylim(y_lims[task])
+        ax.legend(legend)
+        ax.set_title(f'Task {task + 1}')
+
+    fig.tight_layout()
+    plt.savefig(filename)
+    plt.show()

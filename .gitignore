@@ -138,3 +138,6 @@ dmypy.json
 *.out
 *.pdf
 *.gz
+
+# MacOS files
+**/.DS_Store
