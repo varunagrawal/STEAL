@@ -65,7 +65,7 @@ In order for robots to be more accessible to non-experts, they should be able to
 \vspace{-1em}
 \section{Project Motivation}
 
-Existing works in LfD don't explicitly consider the nonlinear, non-Euclidean nature of trajectories and our physical world. Even when they do~\cite{Rana20corl}, they only operate on a single expert trajectory (obtained e.g. via Dynamic Time Warping), losing personalization and robustness to sub-optimality.
+Existing works in LfD don't explicitly consider the nonlinear nature of trajectories and our physical world. Even when they do~\cite{Rana20corl}, they only operate on a single expert trajectory (obtained e.g. via Dynamic Time Warping), losing personalization and robustness to sub-optimality.
 This motivates our use of RMPFlow as the motion policy generator since it can handle generic non-Euclidean spaces (or Riemannian Manifolds).
 
 % The current approach used by RMPFlow requires the use of a single, nominal trajectory without mechanisms to handle sub-optimality. Dynamic Time Warping is used to find the nominal trajectory which in turn fully governs the learning dynamics. However, we would like to make our system robust to sub-optimal demonstrations.
@@ -76,7 +76,7 @@ Gaussian Process Regression has a number of desirable properties which motivates
 \section{Approach}
 % \textit{How your approach will work (or what your experiment will do to answer a novel question)?}
 
-To be able to operate in nonlinear, non-Euclidean task spaces, we use RMPFlow for learning a controller $\pi(t; \theta)$ from demonstrations. This also grants us theoretical guarantees about safety, stability, local reactivity, and extensibility, all of which are useful in Human-Robot Interaction, while being agnostic to the robot and task type.
+To be able to operate in nonlinear task spaces, we use RMPFlow for learning a controller $\pi(t; \theta)$ from demonstrations. This also grants us theoretical guarantees about safety, stability, local reactivity, and extensibility, all of which are useful in Human-Robot Interaction, while being agnostic to the robot and task type.
 
 To incorporate multiple trajectories and be robust to sub-optimality, we leverage the use of Gaussian Processes (GPs)~\cite{Mukadam18ijrr,Bhardwaj20icra,vanWaveren22manuscript} which are a common representation for continuous-time robot trajectories. GPs use Bayesian inference to incorporate multiple trajectories as samples of a mean trajectory function, and the covariance matrix $\mathcal{K}$ helps define properties of the trajectories. The choice of $\mathcal{K}$ is a hyperparameter which allows us to incorporate personalization metrics.
 
@@ -88,7 +88,7 @@ To incorporate multiple trajectories and be robust to sub-optimality, we leverag
 % \textit{What progress you have made since your proposal?}
 
 \begin{itemize}
-    \item Met multiple times in order to read and learn about RMPFlow and Gaussian Processes (common \& state-of-the-art techniques which are beyond the scope of the class).
+    \item Met multiple times in order to read and learn about RMPFlow and Gaussian Processes (state-of-the-art techniques which are beyond the scope of the class).
     \item Baseline RMPFlow model working for simple LASA~\cite{Khansari-Zadeh11tro} dataset drawing task.
     \item GP regression (using GPyTorch) on LASA drawing task.
 \end{itemize}
