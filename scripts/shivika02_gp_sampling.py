@@ -9,7 +9,7 @@ import torch
 
 from steal.datasets.lasa_GP import concatenate_trajectories, load_trajectories
 from steal.gp.multi_task import MultitaskApproximateGaussianProcess
-from steal.utils.plotting.gp import plot_multi_output_gp
+from steal.utils.plotting.gp import plot_samples
 
 
 def main():
@@ -42,23 +42,13 @@ def main():
 
     x_lim = [0, 6.0]
     y_lims = [[-40, 15], [-25, 30]]
-    plot_multi_output_gp(trajectories,
-                         test_t,
-                         mean,
-                         lower,
-                         upper,
-                         num_tasks=2,
-                         x_lim=x_lim,
-                         y_lims=y_lims,
-                         image_name='multi_VGP.png')
-
-    legend_list = [ 
-        'Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5',
-        'Sample 6', 'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10',
-        'Mean', 'Confidence'
+    legend_list = [
+        'Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6',
+        'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10', 'Mean', 'Confidence'
     ]
     # Sample visualization
-    gp.plot_samples(num_tasks, y_lims, test_t, samples, mean, lower, upper, legend_list)
+    plot_samples(num_tasks, test_t, samples, mean, lower, upper, legend_list,
+                 x_lim, y_lims)
 
 
 if __name__ == "__main__":
