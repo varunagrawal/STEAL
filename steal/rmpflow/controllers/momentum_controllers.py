@@ -1,3 +1,5 @@
+"""Momentum based controllers."""
+
 import torch
 import torch.autograd as autograd
 
@@ -5,9 +7,9 @@ from steal.rmpflow.rmp_tree import Rmp
 
 
 class NaturalGradientDescentMomentumController(Rmp):
-    '''
+    """
     A first-order system based on natural gradient descent
-    '''
+    """
 
     def __init__(self,
                  G,
@@ -15,8 +17,7 @@ class NaturalGradientDescentMomentumController(Rmp):
                  del_Phi=None,
                  return_natural=True,
                  device=torch.device('cpu')):
-        super(NaturalGradientDescentMomentumController,
-              self).__init__(return_natural=return_natural)
+        super().__init__(return_natural=return_natural)
         self.G = G
         self.Phi = Phi
         self.del_Phi = del_Phi
@@ -31,14 +32,15 @@ class NaturalGradientDescentMomentumController(Rmp):
                 self.del_Phi = self.Phi.grad
             else:
                 print('Using numerical del_Phi')
-                self.del_Phi = self.find_potential_gradient
+                self.del_Phi = self.potential_gradient
 
     def eval_natural(self, x, xd=None, t=None):
         p = -self.del_Phi(x)
         M = self.G(x)
         return p, M
 
-    def find_potential_gradient(self, x):
+    def potential_gradient(self, x):
+        """Compute gradient of the potential ∇Φ"""
         n, d = x.size()
         x.requires_grad_(True)
         Phi = self.Phi(x).reshape(-1, 1)

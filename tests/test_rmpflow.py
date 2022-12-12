@@ -4,7 +4,8 @@ import unittest
 
 import torch
 
-from steal.rmpflow import (ObstacleAvoidanceForceController,
+from steal.rmpflow import (NaturalGradientDescentForceController,
+                           ObstacleAvoidanceForceController,
                            SphereDistanceTaskMap, TargetForceControllerUniform,
                            TargetTaskMap)
 from steal.rmpflow.rmp_tree import RmpTreeNode
@@ -76,3 +77,17 @@ class TestRMPFlow(unittest.TestCase):
         end_point = torch.tensor([-2.703963756561, 2.213977813721])
         torch.testing.assert_close(traj[0], start_point)
         torch.testing.assert_close(traj[-1], end_point)
+
+
+class TestForceController(unittest.TestCase):
+    """Tests for the force_controllers module."""
+
+    def test_natural_gradient_descent_force_controller(self):
+        d = 2
+        G = lambda x, xd: torch.einsum('bi,bj->bij', x, x * xd)
+        B = torch.zeros(d, d)
+        Phi = lambda x: (0.5 * torch.norm(x, dim=1)**2).reshape(-1, 1)
+        gds = NaturalGradientDescentForceController(G=G, B=B, Phi=Phi)
+        x = torch.ones(2, d)
+        xd = torch.ones(2, d)
+        f, M = gds(x, xd)

@@ -14,14 +14,14 @@ class ObstacleAvoidanceForceController(NaturalGradientDescentForceController):
                  alpha_switch=None,
                  ds_type='gds',
                  device=torch.device('cpu')):
-        '''
+        """
         Obstacle avoidance controller
         :param proportional_gain:
         :param damping_gain:
         :param epsilon:
         :param alpha_switch: (defines slope of switch) set to None if hard switch desired
         :param ds_type:
-        '''
+        """
         if alpha_switch is None:  #sets a hard velocity based toggle switch
             G = BarrierWithVelocityToggleMetric(epsilon=epsilon, device=device)
         else:  # soft switch with softness given by alpha_switch

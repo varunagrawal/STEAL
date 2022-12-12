@@ -5,9 +5,9 @@ from .potentials import *
 
 
 class TargetForceControllerUniform(NaturalGradientDescentForceController):
-    '''
-	Target controller with uniform metric and soft-norm type potential
-	'''
+    """
+    Target controller with uniform metric and soft-norm type potential
+    """
 
     def __init__(self,
                  damping_gain=2.0,
@@ -35,9 +35,13 @@ class TargetForceControllerUniform(NaturalGradientDescentForceController):
         Phi_tilde = LogCoshPotential(p_gain=self.proportional_gain_,
                                      scaling=self.alpha_)
         del_Phi_tilde = Phi_tilde.grad
-        del_Phi = lambda x: torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x)
-                                         )
-        B = lambda x, xd: G(x) * self.damping_gain_
+
+        def del_Phi(x):
+            return torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x))
+
+        def B(x, xd):
+            return G(x) * self.damping_gain_
+
         super(TargetForceControllerUniform, self).__init__(G=G,
                                                            B=B,
                                                            del_Phi=del_Phi,
@@ -59,7 +63,7 @@ class TargetForceControllerStretched(NaturalGradientDescentForceController):
                  eps=1e-12,
                  ds_type='gds',
                  device=torch.device('cpu')):
-        self.damping_gain = damping_gain
+        self.damping_gain_ = damping_gain
         self.proportional_gain = proportional_gain
         self.w_u = w_u
         self.w_l = w_l
@@ -84,7 +88,7 @@ class TargetForceControllerStretched(NaturalGradientDescentForceController):
             return torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x))
 
         def B(x, xd):
-            return G(x) * self.damping_gain
+            return G(x) * self.damping_gain_
 
         super(TargetForceControllerStretched, self).__init__(G=G,
                                                              B=B,
@@ -122,8 +126,10 @@ class TargetMomentumControllerUniform(NaturalGradientDescentMomentumController
         Phi_tilde = LogCoshPotential(p_gain=self.proportional_gain_,
                                      scaling=self.alpha_)
         del_Phi_tilde = Phi_tilde.grad
-        del_Phi = lambda x: torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x)
-                                         )
+
+        def del_Phi(x):
+            return torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x))
+
         super(TargetMomentumControllerUniform, self).__init__(G=G,
                                                               del_Phi=del_Phi,
                                                               device=device)
@@ -163,8 +169,10 @@ class TargetMomentumControllerStretched(
         Phi_tilde = LogCoshPotential(p_gain=self.proportional_gain,
                                      scaling=self.alpha_softmax)
         del_Phi_tilde = Phi_tilde.grad
-        del_Phi = lambda x: torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x)
-                                         )
+
+        def del_Phi(x):
+            return torch.einsum('bij, bj-> bi', G(x), del_Phi_tilde(x))
+
         super(TargetMomentumControllerStretched,
               self).__init__(G=G, del_Phi=del_Phi, device=device)
 
@@ -172,30 +180,30 @@ class TargetMomentumControllerStretched(
 # -------------------------------------------
 #
 # class TrajectoryTrackingTimeDependentController(nn.Module):
-# 	def __init__(self, x_traj, xd_traj, dt, kp=4., kd=1.):
-# 		self.x_traj = x_traj   # list of positions dt spaced in time
-# 		self.xd_traj = xd_traj # list of velocities dt spaced in time
-# 		self.kp = kp
-# 		self.kd = kd
-# 		self.dt = dt
-# 		super(TrajectoryTrackingTimeDependentController, self).__init__()
+#     def __init__(self, x_traj, xd_traj, dt, kp=4., kd=1.):
+#         self.x_traj = x_traj   # list of positions dt spaced in time
+#         self.xd_traj = xd_traj # list of velocities dt spaced in time
+#         self.kp = kp
+#         self.kd = kd
+#         self.dt = dt
+#         super(TrajectoryTrackingTimeDependentController, self).__init__()
 #
-# 	def forward(self, t, x):
-# 		# assuming robot starts from zero velocity!
-# 		idx = np.round(t / self.dt).astype(int)
-# 		xdd = -self.kp*(x-self.x_traj[idx]) -self.kd*(0.0 - self.xd_traj[idx])
-# 		return xdd
+#     def forward(self, t, x):
+#         # assuming robot starts from zero velocity!
+#         idx = np.round(t / self.dt).astype(int)
+#         xdd = -self.kp*(x-self.x_traj[idx]) -self.kd*(0.0 - self.xd_traj[idx])
+#         return xdd
 #
 #
 # class TimeWrapperNet(nn.Module):
-# 	def __init__(self, net):
-# 		super(TimeWrapperNet, self).__init__()
-# 		self.net = net
+#     def __init__(self, net):
+#         super(TimeWrapperNet, self).__init__()
+#         self.net = net
 #
-# 	def forward(self, t, x):
-# 		if isinstance(x, torch.Tensor):
-# 			return self.net(x)
-# 		elif isinstance(x, dict):
-# 			return self.net(**x)
-# 		else:
-# 			raise ValueError
+#     def forward(self, t, x):
+#         if isinstance(x, torch.Tensor):
+#             return self.net(x)
+#         elif isinstance(x, dict):
+#             return self.net(**x)
+#         else:
+#             raise ValueError

@@ -4,8 +4,11 @@ import torch
 
 from steal.rmpflow.kinematics.taskmaps import TaskMap
 
+#pylint: disable=method-hidden
+
 
 def get_distance_taskmap(type='sphere', **kwargs):
+    """Depending on type, get the distance taskmap."""
     if type == 'sphere':
         return SphereDistanceTaskMap(**kwargs)
     elif type == 'point':
@@ -76,10 +79,15 @@ class PointDistanceTaskMap(TaskMap):
         else:
             self.center = center.to(device=self.device,
                                     dtype=torch.get_default_dtype())
-        psi = lambda x: 0.5 * torch.norm(x - self.center, dim=1).reshape(
-            -1, 1)**2
-        J = lambda x: (x - self.center).unsqueeze(1)
-        J_dot = lambda x, xd: xd.unsqueeze(1)
+
+        def psi(x):
+            return 0.5 * torch.norm(x - self.center, dim=1).reshape(-1, 1)**2
+
+        def J(x):
+            return (x - self.center).unsqueeze(1)
+
+        def J_dot(x, xd):
+            return xd.unsqueeze(1)
 
         super(PointDistanceTaskMap, self).__init__(n_inputs=self.n_inputs,
                                                    n_outputs=1,
@@ -139,8 +147,8 @@ class CylinderDistanceTaskMap(TaskMap):
             return PointLineSegmentDistance(self.x1, self.x2, x) - self.radius
 
         # def J(x):
-        # 	_, alpha = PointLineSegmentDistance(self.x1, self.x2, x, get_alpha_ret=True)
-        # 	return torch.nn.functional.normalize(x - ((1. - alpha) * self.x1 + alpha * self.x2)).unsqueeze(2)
+        #     _, alpha = PointLineSegmentDistance(self.x1, self.x2, x, get_alpha_ret=True)
+        #     return torch.nn.functional.normalize(x - ((1. - alpha) * self.x1 + alpha * self.x2)).unsqueeze(2)
 
         super(CylinderDistanceTaskMap, self).__init__(n_inputs=D,
                                                       n_outputs=1,

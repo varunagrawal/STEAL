@@ -94,15 +94,15 @@ class SphericalTargetTaskMap(TaskMap):
 
 
 class DimSelectorTaskMap(TaskMap):
+    """Select a subset of dimensions in the input."""
 
     def __init__(self, n_inputs, selected_dims, device=torch.device('cpu')):
         self.selected_dims = selected_dims
 
-        if type(selected_dims) == int:
+        if isinstance(selected_dims, int):
             selected_dims = torch.tensor([selected_dims])
             n_outputs = 1
-        elif type(selected_dims) == torch.Tensor or type(
-                selected_dims) == np.ndarray:
+        elif isinstance(selected_dims, (torch.Tensor, np.ndarray)):
             assert (selected_dims.ndim == 1
                     ), ValueError('Selected dims has to be 1-D array or int')
             n_outputs = selected_dims.shape[-1]

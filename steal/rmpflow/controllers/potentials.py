@@ -1,42 +1,47 @@
+"""Various potentials used in the RMP virtual dynamical system."""
+
 import torch
 from torch.nn import functional as F
 
 
 # TODO: convert these to nn.Module
-class Potential(object):
+class Potential:
+    """RMP Potential base class."""
 
-    def __call__(self, q):
+    def __call__(self, x):
         pass
 
-    def grad(self, q):
-        pass
+    def grad(self, x):
+        """Compute ∇Φ of the potential"""
 
     def to(self, device):
-        pass
+        """Move potential to `device` (e.g. GPU0."""
 
     def save(self, filename):
-        pass
+        """Serialize potential to `filename`."""
 
     def load(self, filename):
-        pass
+        """Deserialize potential from `filename`."""
 
 
 class ZeroPotential(Potential):
+    """A potential with zero effect."""
 
     def __init__(self, device=torch.device('cpu')):
         self.device = device
 
-    def __call__(self, q):
-        return torch.zeros(q.size(0), device=self.device)
+    def __call__(self, x):
+        return torch.zeros(x.size(0), device=self.device)
 
-    def grad(self, q):
-        return torch.zeros_like(q, device=self.device)
+    def grad(self, x):
+        return torch.zeros_like(x, device=self.device)
 
     def to(self, device):
         self.device = device
 
 
 class QuadraticPotential(Potential):
+    """Potential which computes the quadratic formula x'Hx."""
 
     def __init__(self, n_dims=None, hessian=None, device=torch.device('cpu')):
         assert n_dims is not None or hessian is not None
@@ -54,12 +59,12 @@ class QuadraticPotential(Potential):
 
         self.device = device
 
-    def __call__(self, q):
-        potential = 0.5 * torch.einsum('bi, ij, bj->b', q, self.hessian, q)
+    def __call__(self, x):
+        potential = 0.5 * torch.einsum('bi, ij, bj->b', x, self.hessian, x)
         return potential
 
-    def grad(self, q):
-        gradient = torch.einsum('ij, bj->bi', self.hessian, q)
+    def grad(self, x):
+        gradient = torch.einsum('ij, bj->bi', self.hessian, x)
         return gradient
 
     def to(self, device):
@@ -67,52 +72,59 @@ class QuadraticPotential(Potential):
         self.hessian.to(self.device)
 
     def set_parameters(self, hessian):
-        assert hessian.size()[0] == self.n_dims
+        """Set the parameters of this potential."""
+        assert hessian.size()[0] == self.n_dims, "Hessian size is incorrect"
         self.hessian = hessian.to(self.device)
 
 
 class LogCoshPotential(Potential):
+    """
+    A potential used for smooth attraction to a target.
+    Uses the form of eqn 24 in the RMPFlow paper.
+    """
 
     def __init__(self, scaling=100., p_gain=1.):
         self.scaling = scaling * 1.
         self.p_gain = p_gain
 
-    def __call__(self, q):
-        q_norm = torch.norm(q, dim=1)
+    def __call__(self, x):
+        x_norm = torch.norm(x, dim=1)
         potential = self.p_gain / self.scaling * torch.log(
-            torch.cosh(q_norm) * 2.)
+            torch.cosh(x_norm) * 2.)
         return potential
 
-    def grad(self, q):
-        n_dims = q.size()[1]
-        q_norm = torch.norm(q, dim=1).repeat(n_dims, 1).t()
-        s_alpha = torch.tanh(self.scaling * q_norm)
-        q_hat = F.normalize(q)
-        return self.p_gain * s_alpha * q_hat
+    def grad(self, x):
+        n_dims = x.size()[1]
+        x_norm = torch.norm(x, dim=1).repeat(n_dims, 1).t()
+        s_alpha = torch.tanh(self.scaling * x_norm)
+        x_hat = F.normalize(x)
+        return self.p_gain * s_alpha * x_hat
 
     def set_parameters(self, scaling):
+        """Set the parameters of this potential."""
         self.scaling = scaling * 1.
 
 
 class L2NormPotential(Potential):
-
+    """A potential which computes the L2 norm."""
     def __init__(self, scaling=1.):
         self.scaling = scaling
 
-    def __call__(self, q):
-        return torch.norm(q, dim=1)
+    def __call__(self, x):
+        return torch.norm(x, dim=1)
 
-    def grad(self, q):
-        return F.normalize(q)
+    def grad(self, x):
+        return F.normalize(x)
 
     def set_parameters(self, scaling):
+        """Set the parameters of this potential."""
         self.scaling = scaling * 1.
 
 
 class BarrierPotential(Potential):
-    '''
-	Barrier Potential
-	'''
+    """
+    Barrier function potential.
+    """
 
     def __init__(self,
                  proportional_gain=1e-5,
@@ -135,11 +147,13 @@ class BarrierPotential(Potential):
         return del_phi
 
     def barrier_scalar(self, x):
-        w = 1. / x**self.slope_order
+        """Compute the scalar used in the barrier function"""
+        w = 1. / (x**self.slope_order)
         w[x <= 0.] = 1e15
         return w
 
     def del_barrier_scalar(self, x):
+        """"Compute jacobian of the barrier scalar."""
         del_w = -1.0 * self.slope_order / x**(self.slope_order + 1)
         del_w[x <= 0.] = 0.
         return del_w
@@ -149,9 +163,9 @@ class BarrierPotential(Potential):
 
 
 class SmoothBarrierPotential(Potential):
-    '''
-	Smooth Barrier Potential
-	'''
+    """
+    Smooth Barrier Potential
+    """
 
     def __init__(self, alpha=1.0, maximum=1e15):
         self.alpha = alpha
@@ -162,5 +176,6 @@ class SmoothBarrierPotential(Potential):
         return phi
 
     def barrier_scalar(self, x):
+        """Compute the scalar used in the barrier function"""
         w = 1. / torch.cosh(self.alpha * x)
         return w

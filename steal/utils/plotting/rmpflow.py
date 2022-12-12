@@ -103,6 +103,7 @@ def plot_traj_time(time,
 
 
 def plot_robot_2D(robot, q, lw=2, handle_list=None, link_order=None):
+    """Plot a Robot in 2D"""
     link_pos = robot.forward_kinematics(q)
     num_links = link_pos.shape[1]
 
@@ -152,6 +153,7 @@ def plot_robot_2D(robot, q, lw=2, handle_list=None, link_order=None):
 
 
 def plot_robot_3D(robot, q, lw, handle_list=None, link_order=None):
+    """Plot a robot in 3D"""
     link_pos = robot.forward_kinematics(q)
 
     if handle_list is None:
@@ -259,6 +261,7 @@ def transform_pt(pt, transform_mat):
 
 
 def set_axes_radius(ax, origin, radius):
+    """Set the size of the axes."""
     ax.set_xlim3d([origin[0] - radius, origin[0] + radius])
     ax.set_ylim3d([origin[1] - radius, origin[1] + radius])
     ax.set_zlim3d([origin[2] - radius, origin[2] + radius])
@@ -266,12 +269,12 @@ def set_axes_radius(ax, origin, radius):
 
 def set_axes_equal(ax):
     """Make axes of 3D plot have equal scale so that spheres appear as spheres,
-	cubes as cubes, etc..  This is one possible solution to Matplotlib's
-	ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
+    cubes as cubes, etc..  This is one possible solution to Matplotlib's
+    ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
 
-	Input
-	  ax: a matplotlib axis, e.g., as output from plt.gca().
-	"""
+    Input
+      ax: a matplotlib axis, e.g., as output from plt.gca().
+    """
 
     limits = np.array([
         ax.get_xlim3d(),

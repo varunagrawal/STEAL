@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from steal.rmpflow.kinematics.robot import JointLimit, Robot
+from steal.robot import JointLimit, Robot
 
 
 class TestJointLimit(unittest.TestCase):

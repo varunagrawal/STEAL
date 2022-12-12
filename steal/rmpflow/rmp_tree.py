@@ -1,4 +1,6 @@
 """
+Module for creating an RMP-Tree in order to generate a global Riemannian Motion Policy
+from motion policies on subtasks defined by the leaves in the tree.
 """
 import abc
 
@@ -10,7 +12,7 @@ from steal.rmpflow.kinematics.taskmaps import TaskMap
 
 # TODO: rmp order should be an input to the initializer
 class Rmp(nn.Module):
-    """A Riemannian Motion Policy Node"""
+    """A Riemannian Motion Policy."""
 
     def __init__(self, return_natural=True):
         super(Rmp, self).__init__()
@@ -48,7 +50,7 @@ class Rmp(nn.Module):
 
 class RmpTreeNode(Rmp):
     """
-    Node in the RMP tree
+    Node in the RMP tree.
     TODO: Add extra_repr for printing out the tree branching out of it
     """
 
@@ -70,16 +72,17 @@ class RmpTreeNode(Rmp):
         self.device = device
 
     def add_rmp(self, rmp):
-        """Add RMP to list of leaves."""
+        """Add an RMP to which operates on the manifold represented by this node."""
         self.rmps.append(rmp)
 
     def add_task_space(self, task_map: TaskMap, name=""):
-        """Generate new Task Space and add it to the RMP tree.
+        """Generate a new Task Space and add it to the RMP tree.
 
         Args:
-            task_map (_type_): The new task map to add.
+            task_map (TaskMap): The task map which converts
+                to the task space represented by the child node.
             name (str, optional): The name of the RMP tree node
-            assigned to the task map. Defaults to "".
+                assigned to the task map. Defaults to "".
 
         Returns:
             RmpTreeNode: The child RMPTree node added.
@@ -98,18 +101,19 @@ class RmpTreeNode(Rmp):
         return child_node
 
     def eval_natural(self, x, xd=None, t=None):
+        """Evaluate the RMPs in natural form."""
         assert (x.shape[-1] == self.n_dim), ValueError('Dimension mismatch!')
 
         n_pts = x.shape[0]
         f = torch.zeros(n_pts, self.n_dim, device=self.device)
         M = torch.zeros(n_pts, self.n_dim, self.n_dim, device=self.device)
 
-        for i, edge in enumerate(self.edges):
+        for edge in self.edges:
             f_i, M_i = edge(x=x, xd=xd, t=t)
             f += f_i
             M += M_i
 
-        for i, rmp in enumerate(self.rmps):
+        for rmp in self.rmps:
             f_i, M_i = rmp(x=x, xd=xd, t=t)
             f += f_i
             M += M_i
@@ -118,14 +122,22 @@ class RmpTreeNode(Rmp):
 
     @property
     def n_edges(self):
+        """Get the number of edges to from this node."""
         return len(self.edges)
 
     @property
     def n_rmps(self):
+        """Get the number of RMPs in this node."""
         return len(self.rmps)
 
 
 class RmpTreeEdge(Rmp):
+    """
+    An edge in the RMP Tree.
+    The edge represents a transform from one manifold (or task space) to another,
+    which is achieved via the `task_map`.
+    The associated child node with this edge is the RMP in the transformed manifold.
+    """
 
     def __init__(self,
                  task_map,
@@ -142,6 +154,7 @@ class RmpTreeEdge(Rmp):
         assert self.order in [1, 2], TypeError('Invalid RMP order!')
 
     def eval_natural(self, x, xd=None, t=None):
+        """Evaluate the RMP in natural form."""
         if self.order == 2:
             # pushforward
             y, yd, J, Jd = self.task_map(x=x, xd=xd, order=self.order)
