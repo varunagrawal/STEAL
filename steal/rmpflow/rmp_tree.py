@@ -72,14 +72,15 @@ class RmpTreeNode(Rmp):
         self.device = device
 
     def add_rmp(self, rmp):
-        """Add RMP to which operates on the manifold represented by this node."""
+        """Add an RMP to which operates on the manifold represented by this node."""
         self.rmps.append(rmp)
 
     def add_task_space(self, task_map: TaskMap, name=""):
-        """Generate new Task Space and add it to the RMP tree.
+        """Generate a new Task Space and add it to the RMP tree.
 
         Args:
-            task_map (TaskMap): The new task map to add.
+            task_map (TaskMap): The task map which converts
+                to the task space represented by the child node.
             name (str, optional): The name of the RMP tree node
                 assigned to the task map. Defaults to "".
 
@@ -133,7 +134,7 @@ class RmpTreeNode(Rmp):
 class RmpTreeEdge(Rmp):
     """
     An edge in the RMP Tree.
-    The edge represents a tranform from one manifold (or task space) to another,
+    The edge represents a transform from one manifold (or task space) to another,
     which is achieved via the `task_map`.
     The associated child node with this edge is the RMP in the transformed manifold.
     """

@@ -33,7 +33,7 @@ class NaturalGradientDescentForceController(Rmp):
         self.ds_type = ds_type
         self.device = device
 
-        if self.ds_type is not 'gds':
+        if self.ds_type != 'gds':
             raise NotImplementedError
 
         if isinstance(self.B, torch.Tensor):  # 2-D tensor
