@@ -32,13 +32,16 @@ def main():
     training_iterations = 60
     gp.train(train_t, train_xy, training_iterations=training_iterations)
 
-    # Make predictions
+    test_t = torch.linspace(0, 6, 1000).double()
+
+    # Compute posterior for the test data
+    posterior = gp.posterior(test_t)
+    samples = gp.samples(test_t, 10)
+
+    # Compute the confidence interval for the posterior
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
-        test_t = torch.linspace(0, 6, 1000).double()
-        predictions = gp.evaluate(test_t)
-        mean = predictions.mean
-        lower, upper = predictions.confidence_region()
-        samples = gp.samples(test_t, 10)
+        mean = posterior.mean
+        lower, upper = posterior.confidence_region()
 
     x_lim = [0, 6.0]
     y_lims = [[-40, 15], [-25, 30]]

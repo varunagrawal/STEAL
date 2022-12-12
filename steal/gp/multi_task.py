@@ -83,12 +83,18 @@ class MultitaskExactGaussianProcess(BaseGaussianProcess):
 class MultitaskApproximateGPModel(ApproximateGP):
     """Multi-output GP trained via Stochastic Variational Inference"""
 
-    def __init__(self, inducing_points, num_tasks=2, num_latents=3):
+    def __init__(self,
+                 inducing_points,
+                 num_tasks=2,
+                 num_latents=3,
+                 mean_init_std=1e-3):
 
         # We have to mark the CholeskyVariationalDistribution as batch
         # so that we learn a variational distribution for each task
         variational_distribution = CholeskyVariationalDistribution(
-            inducing_points.size(-2), batch_shape=torch.Size([num_latents]))
+            inducing_points.size(-2),
+            batch_shape=torch.Size([num_latents]),
+            mean_init_std=mean_init_std)
 
         # We have to wrap the VariationalStrategy in a LMCVariationalStrategy
         # so that the output will be a MultitaskMultivariateNormal rather than a batch output
