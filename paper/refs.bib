@@ -2,17 +2,6 @@
 % Encoding: UTF-8
 
 
-@Article{Gauss1857,
-  Title                    = {Theory of the motion of the heavenly bodies moving about the sun in conic sections},
-  Author                   = {Carl Friedrich Gauss and Charles Henry Davis},
-  Journal                  = {Gauss's Theoria Motus},
-  Year                     = {1857},
-  Number                   = {1},
-  Pages                    = {5--23},
-  Volume                   = {76}
-}
-
-
 @InProceedings{Rana20corl,
     title = 	 {Learning Reactive Motion Policies in Multiple Task Spaces from Human Demonstrations},
     author =       {Rana, M. Asif and Li, Anqi and Ravichandar, Harish and Mukadam, Mustafa and Chernova, Sonia and Fox, Dieter and Boots, Byron and Ratliff, Nathan},
@@ -145,3 +134,94 @@ doi = {10.1109/ICRA40945.2020.9197260}
 }
 
 @ARTICLE{Khansari-Zadeh11tro,  author={Khansari-Zadeh, S. Mohammad and Billard, Aude},  journal={IEEE Transactions on Robotics},   title={Learning Stable Nonlinear Dynamical Systems With Gaussian Mixture Models},   year={2011},  volume={27},  number={5},  pages={943-957},  doi={10.1109/TRO.2011.2159412}}
+
+@article{Argall09ras,
+    title = {A survey of robot learning from demonstration},
+    journal = {Robotics and Autonomous Systems},
+    volume = {57},
+    number = {5},
+    pages = {469-483},
+    year = {2009},
+    issn = {0921-8890},
+    doi = {https://doi.org/10.1016/j.robot.2008.10.024},
+    url = {https://www.sciencedirect.com/science/article/pii/S0921889008001772},
+    author = {Brenna D. Argall and Sonia Chernova and Manuela Veloso and Brett Browning},
+    keywords = {Learning from demonstration, Robotics, Machine learning, Autonomous systems},
+    abstract = {We present a comprehensive survey of robot Learning from Demonstration (LfD), a technique that develops policies from example state to action mappings. We introduce the LfD design choices in terms of demonstrator, problem space, policy derivation and performance, and contribute the foundations for a structure in which to categorize LfD research. Specifically, we analyze and categorize the multiple ways in which examples are gathered, ranging from teleoperation to imitation, as well as the various techniques for policy derivation, including matching functions, dynamics models and plans. To conclude we discuss LfD limitations and related promising areas for future research.}
+}
+
+@ARTICLE{Cheng21tase,
+    author={Cheng, Ching-An and Mukadam, Mustafa and Issac, Jan and Birchfield, Stan and Fox, Dieter and Boots, Byron and Ratliff, Nathan},
+    journal={IEEE Transactions on Automation Science and Engineering},   
+    title={RMPflow: A Geometric Framework for Generation of Multitask Motion Policies},
+    year={2021},
+    volume={18},
+    number={3},
+    pages={968-987},
+    doi={10.1109/TASE.2021.3053422}
+}
+
+@InProceedings{Rana20ldc,
+    title = 	 {Euclideanizing Flows: Diffeomorphic Reduction for Learning Stable Dynamical Systems},
+    author =       {Rana, Muhammad Asif and Li, Anqi and Fox, Dieter and Boots, Byron and Ramos, Fabio and Ratliff, Nathan},
+    booktitle = 	 {Proceedings of the 2nd Conference on Learning for Dynamics and Control},
+    pages = 	 {630--639},
+    year = 	 {2020},
+    editor = 	 {Bayen, Alexandre M. and Jadbabaie, Ali and Pappas, George and Parrilo, Pablo A. and Recht, Benjamin and Tomlin, Claire and Zeilinger, Melanie},
+    volume = 	 {120},
+    series = 	 {Proceedings of Machine Learning Research},
+    month = 	 {10--11 Jun},
+    publisher =    {PMLR},
+    pdf = 	 {http://proceedings.mlr.press/v120/rana20a/rana20a.pdf},
+    url = 	 {https://proceedings.mlr.press/v120/rana20a.html},
+    abstract = 	 {Execution of complex tasks in robotics requires motions that have complex geometric structure. We present an approach which allows robots to learn such motions from a few human demonstrations. The motions are encoded as rollouts of a dynamical system on a Riemannian manifold. Additional structure is imposed which guarantees smooth convergent motions to a goal location. The aforementioned structure involves viewing motions on an observed Riemannian manifold as deformations of straight lines on a latent Euclidean space. The observed and latent spaces are related through a diffeomorphism. Thus, this paper presents an approach for learning flexible diffeomorphisms, resulting in a stable dynamical system.  The efficacy of this approach is demonstrated through validation on an established benchmark as well demonstrations collected on a real-world robotic system.}
+}
+
+@Inbook{Rasmussen04book,
+    author="Rasmussen, Carl Edward",
+    editor="Bousquet, Olivier
+    and von Luxburg, Ulrike
+    and R{\"a}tsch, Gunnar",
+    title="Gaussian Processes in Machine Learning",
+    bookTitle="Advanced Lectures on Machine Learning: ML Summer Schools 2003, Canberra, Australia, February 2 - 14, 2003, T{\"u}bingen, Germany, August 4 - 16, 2003, Revised Lectures",
+    year="2004",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="63--71",
+    abstract="We give a basic introduction to Gaussian Process regression models. We focus on understanding the role of the stochastic process and how it is used to define a distribution over functions. We present the simple equations for incorporating training data and examine how to learn the hyperparameters using the marginal likelihood. We explain the practical advantages of Gaussian Process and end with conclusions and a look at the current trends in GP work.",
+    isbn="978-3-540-28650-9",
+    doi="10.1007/978-3-540-28650-9_4",
+    url="https://doi.org/10.1007/978-3-540-28650-9_4"
+}
+
+@Inbook{Rasmussen2004,
+    author="Rasmussen, Carl Edward",
+    editor="Bousquet, Olivier
+    and von Luxburg, Ulrike
+    and R{\"a}tsch, Gunnar",
+    title="Gaussian Processes in Machine Learning",
+    bookTitle="Advanced Lectures on Machine Learning: ML Summer Schools 2003, Canberra, Australia, February 2 - 14, 2003, T{\"u}bingen, Germany, August 4 - 16, 2003, Revised Lectures",
+    year="2004",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="63--71",
+    abstract="We give a basic introduction to Gaussian Process regression models. We focus on understanding the role of the stochastic process and how it is used to define a distribution over functions. We present the simple equations for incorporating training data and examine how to learn the hyperparameters using the marginal likelihood. We explain the practical advantages of Gaussian Process and end with conclusions and a look at the current trends in GP work.",
+    isbn="978-3-540-28650-9",
+    doi="10.1007/978-3-540-28650-9_4",
+    url="https://doi.org/10.1007/978-3-540-28650-9_4"
+}
+
+@inproceedings{Duan17neurips,
+    author = {Duan, Yan and Andrychowicz, Marcin and Stadie, Bradly and Ho, Jonathan and Schneider, Jonas and Sutskever, Ilya and Abbeel, Pieter and Zaremba, Wojciech},
+    title = {One-Shot Imitation Learning},
+    year = {2017},
+    isbn = {9781510860964},
+    publisher = {Curran Associates Inc.},
+    address = {Red Hook, NY, USA},
+    abstract = {Imitation learning has been commonly applied to solve different tasks in isolation. This usually requires either careful feature engineering, or a significant number of samples. This is far from what we desire: ideally, robots should be able to learn from very few demonstrations of any given task, and instantly generalize to new situations of the same task, without requiring task-specific engineering. In this paper, we propose a meta-learning framework for achieving such capability, which we call one-shot imitation learning.Specifically, we consider the setting where there is a very large (maybe infinite) set of tasks, and each task has many instantiations. For example, a task could be to stack all blocks on a table into a single tower, another task could be to place all blocks on a table into two-block towers, etc. In each case, different instances of the task would consist of different sets of blocks with different initial states. At training time, our algorithm is presented with pairs of demonstrations for a subset of all tasks. A neural net is trained such that when it takes as input the first demonstration demonstration and a state sampled from the second demonstration, it should predict the action corresponding to the sampled state. At test time, a full demonstration of a single instance of a new task is presented, and the neural net is expected to perform well on new instances of this new task. Our experiments show that the use of soft attention allows the model to generalize to conditions and tasks unseen in the training data. We anticipate that by training this model on a much greater variety of tasks and settings, we will obtain a general system that can turn any demonstrations into robust policies that can accomplish an overwhelming variety of tasks.},
+    booktitle = {Proceedings of the 31st International Conference on Neural Information Processing Systems},
+    pages = {1087–1098},
+    numpages = {12},
+    location = {Long Beach, California, USA},
+    series = {NIPS'17}
+}
