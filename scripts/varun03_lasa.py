@@ -17,8 +17,9 @@ from steal.learning import (LatentTaskMapNetwork, get_flow_params,
                             train_independent2)
 from steal.rmpflow import RmpTreeNode
 from steal.robot import Robot, create_rmp_tree
-from steal.utils import (generate_trajectories, plot_robot_2D, plot_traj_2D,
-                         plot_traj_time)
+from steal.utils.data import generate_trajectories
+from steal.utils.plotting.rmpflow import (plot_robot_2D, plot_traj_2D,
+                                          plot_traj_time)
 
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
@@ -167,12 +168,13 @@ def plot(root: RmpTreeNode, robot, link_names, time_list, joint_traj_list, dt,
                                 link_order=link_order)
         return handle,
 
-    ani = animation.FuncAnimation(fig,
-                                  animate,
-                                  init_func=init,
-                                  interval=30,
-                                  blit=False)
+    anim = animation.FuncAnimation(fig,
+                                   animate,
+                                   init_func=init,
+                                   interval=30,
+                                   blit=False)
 
+    anim.save('lasa_animation.gif', writer='imagemagick', fps=60)
     plt.show()
 
 
@@ -201,7 +203,7 @@ def main():
 
     time_list, joint_traj_list, dt, n_demos = get_lasa_data(params,
                                                             cspace_dim,
-                                                            data_name="Angle")
+                                                            data_name="Sshape")
 
     #TODO remove this duplicate
     leaf_goals, _ = get_leaf_goals(robot, link_names, joint_traj_list)
