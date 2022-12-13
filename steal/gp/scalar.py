@@ -64,9 +64,40 @@ class ScalarGaussianProcess(BaseGaussianProcess):
             loss = -mll(output, y)
             loss.backward()
             print(
-                f'Iter {i+1}/{training_iterations} - Loss: {loss.item():.3f}' \
-                f'   lengthscale: {self._model.covar_module.base_kernel.lengthscale.item():.3f}'\
-                f'   noise: {self._model.likelihood.noise.item():.3f}'
-            )
+                f'Iter {i+1}/{training_iterations} - Loss: {loss.item():.3f}')
 
             optimizer.step()
+
+
+class ExactPreferenceGPModel(ExactGPModel):
+    """We will use the simplest form of GP model, exact inference"""
+
+    def __init__(self, train_x, train_y, likelihood):
+        super().__init__(train_x, train_y, likelihood)
+        self.mean_module = ConstantMean()
+        self.rbf_module = ScaleKernel(RBFKernel())
+        self.preference_module = ScaleKernel(RBFKernel())
+
+    def forward(self, x):
+        """Forward pass"""
+        t = x[:, 0:1]
+        pref = x[:, 1:2]
+        mean_x = self.mean_module(x)
+        covar_rbf = self.rbf_module(t)
+        covar_pref = self.preference_module(pref)
+
+        covar_x = covar_rbf * covar_pref
+        return MultivariateNormal(mean_x, covar_x)
+
+
+class ScalarPreferenceGaussianProcess(ScalarGaussianProcess):
+    """Define a simple Exact GP model"""
+
+    def __init__(self, X, y) -> None:
+        super().__init__(X, y)
+
+        # Initialize likelihood and model
+        self._likelihood = GaussianLikelihood()
+        self._model = ExactGPModel(X, y, self._likelihood)
+
+        self._model.double()
