@@ -48,5 +48,6 @@ class BaseGaussianProcess:
         Return samples (e.g. a trajectory)
         from the posterior gaussian process.
         """
+        # Get a joint Gaussian distribution of GP values at inputs `x`.
         posterior_model = self.posterior(x)
         return posterior_model.sample(sample_shape=torch.Size((num_samples, )))
