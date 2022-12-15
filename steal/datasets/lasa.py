@@ -12,17 +12,30 @@ class Lasa:
 
     def __init__(self, shape="Sshape"):
         """
-        Get the trajectory data for specified `shape` 
+        Get the trajectory data for specified `shape`
         in the LASA dataset.
         """
         if shape not in self.shapes():
             raise RuntimeError(
                 f"Unknown shape {shape}. Please specify one of the following: {self.shapes()}"
             )
-        data = getattr(_lasa.DataSet, shape, _lasa.DataSet.Sshape)
-        self.demos = [demo.pos.T for demo in data.demos]
+        self.data = getattr(_lasa.DataSet, shape, _lasa.DataSet.Sshape)
+        self.demos = self.data.demos
         self.n_demos = len(self.demos)
-        self.dt = data.dt
+        self.dt = self.data.dt
+
+    def concatenated_trajectories(self):
+        """Return the trajectories concatenated into a single array"""
+        train_t = np.empty((0, ))
+        train_xy = np.empty((0, 2))
+        for _, trajectory in enumerate(self.data.demos):
+            train_t = np.hstack(
+                (train_t,
+                 trajectory.t[0])) if train_t.size else trajectory.t[0]
+            train_xy = np.vstack(
+                (train_xy,
+                 trajectory.pos.T)) if train_xy.size else trajectory.pos.T
+        return train_t, train_xy
 
     @staticmethod
     def shapes():
@@ -61,12 +74,13 @@ class Lasa:
         ]
 
 
-def process_data(demo_traj_list, dt, params, cspace_dim):
+def process_data(demos, dt, params, cspace_dim):
     """
     Get the trajectory data for specified `data_name`
     in the LASA dataset.
     """
-    n_demos = len(demo_traj_list)
+    n_demos = len(demos)
+    demo_traj_list = [demo.pos.T for demo in demos]
 
     torch_traj_datasets, dt = preprocess_dataset(
         demo_traj_list,

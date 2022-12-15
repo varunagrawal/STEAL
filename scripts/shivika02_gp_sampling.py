@@ -9,7 +9,7 @@ import argparse
 import gpytorch
 import torch
 
-from steal.datasets.lasa_GP import concatenate_trajectories, load_trajectories
+from steal.datasets.lasa import Lasa
 from steal.gp.multi_task import MultitaskApproximateGaussianProcess
 from steal.utils.plotting.gp import plot_samples
 
@@ -33,10 +33,10 @@ def main():
     """Main runner"""
     args = parse_args()
 
-    trajectories = load_trajectories(dataset_name=args.dataset)
+    lasa = Lasa(shape=args.dataset)
 
     # Concatenating the demos
-    train_t, train_xy = concatenate_trajectories(trajectories)
+    train_t, train_xy = lasa.concatenated_trajectories()
 
     # Time
     train_t = torch.tensor(train_t)

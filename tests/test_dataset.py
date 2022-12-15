@@ -17,6 +17,16 @@ class TestLasaDataset(unittest.TestCase):
         lasa = Lasa()
         self.assertIsInstance(lasa, Lasa)
 
+    def test_load_trajectories(self):
+        """Test if loading of trajectories is correct."""
+        lasa = Lasa(shape="heee")
+        trajectories = lasa.demos
+        assert len(trajectories) == 7
+
+        train_t, train_xy = lasa.concatenated_trajectories()
+        assert train_t.shape == (7000, )
+        assert train_xy.shape == (7000, 2)
+
     def test_process_data(self):
         """Test the process_data function."""
         lasa = Lasa()
