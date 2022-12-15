@@ -62,7 +62,8 @@ def main():
 
     samples = gp.samples(test_t, 10)
 
-    torch.save(samples, open("{args.dataset.lower()}_gp_samples.pt", 'wb'))
+    print("Saving samples")
+    torch.save(samples, open(f"{args.dataset.lower()}_gp_samples.pt", 'wb'))
 
     # Compute the confidence interval for the posterior
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
@@ -76,16 +77,17 @@ def main():
         'Sample 7', 'Sample 8', 'Sample 9', 'Sample 10', 'Mean', 'Confidence'
     ]
     # Sample visualization
-    plot_samples(num_tasks,
-                 test_t,
-                 samples,
-                 mean,
-                 lower,
-                 upper,
-                 legend_list,
-                 x_lim,
-                 y_lims,
-                 title=f"Sampled Trajectories {args.sample_ppd}")
+    plot_samples(
+        num_tasks,
+        test_t,
+        samples,
+        mean,
+        lower,
+        upper,
+        legend_list,
+        x_lim,
+        y_lims,
+        title=f"Sampled Trajectories{' ppd' if args.sample_ppd else ''}")
 
 
 if __name__ == "__main__":
