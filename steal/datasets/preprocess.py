@@ -18,6 +18,11 @@ def preprocess_dataset(traj_list,
                        vel_thresh=0.,
                        goal_at_origin=False):
     """Preprocess the trajectory data.
+    This function performs the following for each demonstration:
+    1. Smooth the trajectory with the Savitzky-Golay filter.
+    2. Downsample the dataset based on `downsample_rate`.
+    3. Compute the velocities using finite differences.
+    4. Trim out the edges of the trajectory based on `start_cut` and `end_cut`.
 
     Args:
         traj_list (_type_): _description_
@@ -34,7 +39,11 @@ def preprocess_dataset(traj_list,
     """
     n_dims = traj_list[0].shape[1]
     n_demos = len(traj_list)
-    # dt = round(dt * downsample_rate, 2)
+
+    # New downsampled time delta
+    if downsample_rate > 1:
+        dt = round(dt * downsample_rate, 2)
+
     torch_datasets = []
     for i in range(n_demos):
         demo_pos = traj_list[i]
@@ -65,7 +74,7 @@ def preprocess_dataset(traj_list,
             TensorDataset(
                 torch.from_numpy(demo_pos).to(torch.get_default_dtype()),
                 torch.from_numpy(demo_vel).to(torch.get_default_dtype())))
-    return torch_datasets
+    return torch_datasets, dt
 
 
 def align_traj(source_traj, target_traj):
