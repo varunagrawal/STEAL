@@ -1,6 +1,29 @@
 \section{Method}
+% covariance matrices
+% \Varun{This should go in the methods section}
+% Although the Simple Gaussian Process with exact inference resulted in good estimation for mean and confidence region, due to each task being trained on an separate independent GP, the model lacked the encoding of similarity information between the tasks. Multioutput GP with exact inference proved to be too computationally intensive due to taking the inverse of a extremely large covariance matrix. As a result, Variational Multioutput Gaussian Process gave good estimation of mean and confidence region, while encoding inter-task covariance information and requiring much less time and resources to train. 
 
-Gaussian Process
-\begin{itemize}
-    \item 
+\subsection{Gaussian Process Models}
+The first Gaussian Process we tested was a Simple Gaussian Process with exact inference. This GP required that each task or output had to learn with separate independent GPs since it only assumes one output dimension per GP. This led to the loss of inter-task covariance information and hence, led to the exploration of multi-output GPs.\\
+    
+Multitask Gaussian Process with exact inference was tested next because of its ability to perform regression on multiple functions ($x$ and $y$) which have the same input ($t$). The inference strategy used in this GP results in the covariance matrix $\Sigma$ that is of size $MN\, X\, MN$, where $M$ is the number of tasks and $N$ is the number of inputs. Due to this, the matrix can grow to be extremely large and sparse. In addition, the mean prediction for every new data point requires the computation of $\Sigma^{-1}$ resulting in $O(M^3N^3)$ computational complexity. As a result, the exact approach causes the computation to be too heavy and slow for our purposes. \\
+    
+The final model we tested was the Variational Multitask Gaussian Process, a batch variational GP. Variational GPs help solve the issue of exact inference methods being too computationally heavy by utilizing a set of $I$ inducing points to reduce the size of the covariance matrix. Inducing points are a much smaller set of points $I << N$ that represent the training data points well without losing too much information and reducing the computational complexity to $O(MNI^2P2)$ where $P$ is the number of principal eigenvectors of the covariance matrix~\cite{Bonilla07neurips}.
+The main components of Variational GPs are the variational distribution, variational strategy, and approximate marginal log-likelihood. The variational distribution is the distribution over the set of inducing points, the variational strategy is defined by the prior distribution of the inducing points and forward method which marginalizes out the inducing point function values~\cite{Gardner18neurips}. The Variational Multitask GP model uses Cholesky variational distribution and Linear Model of Coregionalization (LMC) variational strategy. \\
+
+After training the GP on the training dataset, we evaluated the GP on the test dataset and sampled from the posterior distribution to generate near-optimal trajectories. This enables us to sample as many trajectories as needed, even an infinite number of trajectories theoretically. \\
+   
+We tried implementing a preference-based kernel that takes the preference from the user for each trajectory as input. The preference values are ordinal values ranging from 1 to 10 where 1 is the least preferred trajectory and 10 is the most preferred trajectory. The preference kernel is defined as follows:
+   \[k(x) = y_{0} + \frac{c}{1+\exp^{-k*(x-x_{0})}}\]
+   where $y_{0} = -0.5$, $x_{0} = 0$, $c = 1$, $k = 1$ and x is the absolute difference between the pairwise preference input. We combined the sigmoid kernel with the RBF kernel by multiplication. The preference kernel failed because the function is not positive semi-definite. We further experimented by replacing the sigmoid kernel function with an RBF kernel with preferences as input but unfortunately, we did not have enough time to fully evaluate the results. Looking at the difficulty we faced in adding a custom kernel, we will look into adding Gaussian Process Inverse Reinforcement Learning (GPIRL) \cite{Levine11neurips} as a component for handling suboptimality for future work. 
+
+\subsection{RMPflow}
+We utilized an implementation of RMPflow provided by the authors of~\citet{Rana20ldc}, along with related packages for training the learned RMP.
+
+To train the RMP, we first learned a Euclideanizing Flow using the coupling network proposed in~\cite{Rana20ldc}, thus learning a stable dynamical system in Euclidean space via the use of Natural Gradient Descent. The RMP was trained on samples generated from the estimated Gaussian Process, thus the RMP learns a motion policy which replicates the underlying common structure of all the trajectories even in the presence of outlier demonstrations.
+
+We add the trained RMP to the RMPtree and run RMPflow to generate the global optimal policy. This policy is in the configuration space of the robot and we convert it to the end-effector's task space via forward kinematics. The trajectory in the end-effector space can be rendered directly and showcases the success of our approach in replicating demonstrations.
+
+As an aside, our RMPflow model is very lightweight, roughly $67 KB$ which is 6 orders of magnitude smaller than comparable deep learning based architectures. The lesson we've learned from this is that by delving into the mathematics and underlying structure of the problem, we can vastly improve training and reduce the memory and computational resource requirements.
+    
 \end{itemize}

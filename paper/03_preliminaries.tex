@@ -1,10 +1,27 @@
-Gaussian Process Models
-\begin{itemize}
-    \item Simple Gaussian Process with Exact Inference \\
-    \item Multitask Gaussian Process with Exact Inference \\ 
-    This GP was tested next because of its ability to perform regression on multiple functions (x and y) which have the same input (t). The inference strategy used in this GP results in the covariance matrix $\Sigma$ that is of size $MN X MN$, where $M$ is the number of tasks and $N$ is the number of inputs. Due to this, the matrix can grow to be extremely large and sparse. In addition, the mean prediction for every new data point requires the inverse of $\Sigma$. As a result, generating this large covariance matrix and taking the inverse caused process to be too heavy and slow for our purposes. 
-    \item Variational Multitask Gaussian Process \\
-    The final model we tested was the Linear Model of Coregionalization (LMC) Variational Multitask Gaussian Process, a batch variational GP. Variational GPs help solve the issue of exact inference methods being too computationally heavy. The main components of Variational GPs are the variational distribution, variational strategy, and approixmate marginal log likelihood. The LMC Variational Multitask GP model uses Cholesky variational distribution and variational strategy. \Yuri{Need to maybe explain what LMC is}
-    
-    
-\end{itemize}
+% Background on GP, RMPFlow
+\section{Preliminaries}
+
+\subsection{Gaussian Processes}
+A Gaussian Process (GP) is defined as a collection of random variables, any finite number of which have a joint Gaussian distribution~\cite{Rasmussen04book}.
+A GP is fully defined by its mean function $m(t)$ and covariance function (or kernel) $k(t,t')$ over the distribution of functionals $f(x)$ as: 
+\begin{center}$m(t)= \mathbb{E}[f(t)]$  \\
+\medskip
+$k(t,t') = \mathbb{E}[(f(t)  - m(t)) ((f(t')-m(t')))]$
+\end{center} 
+By definition, $k(t,t')$ is a symmetric and positive semi-definite function. $f(x)$ represents the random variables at input $x$, where $x$ is often time in the case of robot trajectories, which we adopt as well~\cite{Nguyen21arxiv}.
+% For Multivariate Gaussian distributions, the mean is the vector-valued expectation of the data. Similarly, the covariance matrix is a symmetric and positive semi-definite matrix~\cite{Nguyen21arxiv} representing the correlation between the data samples.
+The kernel in a Gaussian Process can be a single covariance function or a combination of kernels. A commonly used kernel is the Squared Exponential (SE)/Radial Basis Function (RBF) Kernel, which is both stationary and smooth. This kernel is defined by:
+\begin{center}
+    $k_{SE}(x,x') = \sigma^2 exp(-\frac{(x-x')^2}{2l^2})$
+\end{center}
+where $l$ is the length scale and $\sigma^2$ is the variance~\cite{Duvenaud14thesis}. A kernel function $k(x,x')$ generally consists of some hyperparameters that can be estimated by maximizing the log marginal likelihood:
+\[ \log{p(y|X)} = \frac{1}{2} y^{T} (K+\sigma_{n}^{2}I)^{-1}y - \frac{1}{2} \log |K+\sigma_{n}^{2}I| - \frac{n}{2} \log 2\pi\]
+
+Unlike Simple Gaussian Processes, Multitask Gaussian Processes take a set of input values and predict multiple tasks that share the same input and simultaneously learn a shared covariance function~\cite{Bonilla07neurips}. This enables learning of inter-task similarities in the covariance matrix. Multitask GPs can utilize exact inference methods or variational methods. Multitask GP causes the covariance matrix to potentially grow extremely large and exact inference requires the inverse of this matrix, which can become very computationally expensive. Variational or approximation methods help reduce the size of this covariance matrix by utilizing inducing points to represent the dataset with a much smaller set of data points, thus reducing the computational complexity.
+
+\subsection{RMPflow}
+
+A Riemannian Motion Policy is an acceleration policy that operates on smooth, differentiable (\ie Riemannian) manifolds.
+It has associated with it a Riemannian Metric which determines the curvature of the geodesics on the manifold~\cite{Ratliff18arxiv}, allowing for the definition of locally reactive policies in non-Euclidean task spaces while accounting for abnormal trajectories, \eg holes in the space due to the presence of obstacles to avoid. RMPs are built upon the notion of Geometric Dynamical Systems and subsume prior work on dynamical systems for robot control such as DMPs~\cite{Ijspeert13nc} and ProMPs~\cite{Paraschos13neurips}. Moreover, they are Lyapunov stable and their enforced structure makes learning relatively easier.
+
+RMPFlow~\cite{Cheng21tase} is a computational framework for automatically combining various RMP motion policies on various subtasks. RMPflow arranges the subtasks into a tree datastructure called the RMPtree where nodes represent the acceleration policy and Riemannian metric for the subtask space and the edges represent task maps from one task space to another. The tree structure allows for ease of task specification since each node represents a specific task objective, simplifying controller design. By utilizing the calculus of RMPs, RMPflow is able to optimally combining the motion policies in the child nodes to generate a globally optimal and stable policy which automatically handles the various subtask constraints.

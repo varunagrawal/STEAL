@@ -16,7 +16,8 @@ Gaussian Processes~\cite{Rasmussen04book} are a powerful mechanism for probabili
 In this work, we propose to leverage Gaussian Processes with an appropriate kernel definition to accommodate suboptimal demonstration trajectories. By computing the posterior of the GP, we can learn the optimal mean trajectory for the task while being flexible to newly provided trajectories.
 To train the RMP for use in RMPflow, we can sample trajectories from the posterior GP and use that as our set of expert demonstrations. The posterior GP can also provide us with highly variable trajectories, which have been shown to improve policy learning~\cite{Duan17neurips}.
 
-\Varun{Add a paragraph about results}
+We show results on a simple benchmark dataset~\cite{Khansari-Zadeh11tro}, where we train a Gaussian Process to estimate the posterior trajectory from a set of sample demonstrations. This GP is then sampled to provide ``pseudo''-expert trajectories which are used to train the RMP node in RMPflow to give us the final learned policy. We empirically demonstrate the ability to recreate the trajectories in the benchmark dataset as a proof of concept of our method.
+
 
 % %===============================================================================
 % \vspace{-1em}

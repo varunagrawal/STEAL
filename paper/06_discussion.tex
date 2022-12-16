@@ -1,1 +1,6 @@
 \section{Discussion}
+\begin{itemize}
+    \item We were able to sample an arbitrary number of near-optimal trajectories from the Variational Multioutput Gaussian Process posterior distribution. These trajectories were then fed as input to RMPflow to generate stable and locally reactive trajectories in non-Euclidean space.
+    
+    \item The preference kernel based on the sigmoid was unable to be incorporated into the overall kernel because it did not result in a positive semi-definite matrix. However, by feeding the RBF kernel ordinal values based on preference, we were able to encode preference into the overall covariance function. 
+\end{itemize}
