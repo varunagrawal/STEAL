@@ -7,17 +7,16 @@ python scripts/shivika01_variatonal_multi.py
 import gpytorch
 import torch
 
-from steal.datasets.lasa_GP import concatenate_trajectories, load_trajectories
+from steal.datasets.lasa import Lasa
 from steal.gp.multi_task import MultitaskApproximateGaussianProcess
 from steal.utils.plotting.gp import plot_multi_output_gp
 
 
 def main():
     """Main runner"""
-    trajectories = load_trajectories()
-
+    lasa = Lasa(shape="heee")
     # Concatenating the demos
-    train_t, train_xy = concatenate_trajectories(trajectories)
+    train_t, train_xy = lasa.concatenated_trajectories()
 
     # Time
     train_t = torch.tensor(train_t)
@@ -41,7 +40,7 @@ def main():
 
     x_lim = [0, 6.0]
     y_lims = [[-40, 15], [-25, 30]]
-    plot_multi_output_gp(trajectories,
+    plot_multi_output_gp(lasa.demos,
                          test_t,
                          mean,
                          lower,

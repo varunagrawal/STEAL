@@ -436,7 +436,7 @@ def train_combined2(lagrangian_vel_nets: list[LatentTaskMapNetwork],
                     train_loader: DataLoader, max_epochs,
                     cspace_dim) -> ContextMomentumNetwork:
     """Train the Riemannian metrics now that the taskmaps have been learned."""
-    print('Training metrics only!')
+    print('\n\n----- Training metrics only!')
 
     model = ContextMomentumNetwork(lagrangian_vel_nets=lagrangian_vel_nets,
                                    n_dims=cspace_dim,

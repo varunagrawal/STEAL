@@ -12,9 +12,7 @@ import torch
 from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
 
-from steal.datasets import lasa
-from steal.datasets.lasa_GP import (concatenate_trajectories, get_lasa_samples,
-                                    load_trajectories)
+from steal.datasets.lasa import Lasa
 from steal.gp import (MultitaskApproximateGaussianProcess,
                       MultitaskExactGaussianProcess, ScalarGaussianProcess)
 from steal.utils.plotting.gp import plot_3d_traj, plot_gp
@@ -26,22 +24,12 @@ torch.set_printoptions(precision=9)
 class TestGaussianProcess(unittest.TestCase):
     """Tests for a scalar valued Gaussian Process on the LASA dataset."""
 
-    def test_load_trajectories(self):
-        """Test if loading of trajectories is correct."""
-        trajectories = load_trajectories()
-        assert len(trajectories) == 7
-
-        train_t, train_xy = concatenate_trajectories(trajectories)
-        assert train_t.shape == (7000, )
-        assert train_xy.shape == (7000, 2)
-
     def test_gp(self):
         """Test training of a scalar-valued GP."""
-        trajectories = load_trajectories()
-        assert len(trajectories) == 7
+        lasa = Lasa(shape="heee")
 
         # Concatenating the demos
-        train_t, train_xy = concatenate_trajectories(trajectories)
+        train_t, train_xy = lasa.concatenated_trajectories()
         train_x = train_xy[:, 0]
         train_y = train_xy[:, 1]
 
@@ -71,89 +59,29 @@ class TestGaussianProcess(unittest.TestCase):
             test_t = torch.linspace(0, 6, 1000).double()
             observed_pred1 = m2.evaluate(test_t)
 
-        if "PYTEST_CURRENT_TEST" not in os.environ:
-
-            legend = [
-                'Observed Demo 1', 'Observed Demo 2', 'Observed Demo 3',
-                'Observed Demo 4', 'Observed Demo 5', 'Observed Demo 6',
-                'Observed Demo 7', 'Mean', 'Confidence'
-            ]
-            trajectories_to_plot = [(trajectory.t[0], trajectory.pos[0, :])
-                                    for trajectory in trajectories]
-            plot_gp(observed_pred,
-                    trajectories_to_plot,
-                    means=(test_t.numpy(), observed_pred.mean.numpy()),
-                    legend=legend,
-                    xlim=[0, 6.0],
-                    ylim=[-40, 15],
-                    xlabel="Time",
-                    ylabel="X-position",
-                    image_name="x_time_GP.png")
-
-            trajectories_to_plot = [(trajectory.t[0], trajectory.pos[1, :])
-                                    for trajectory in trajectories]
-            plot_gp(observed_pred1,
-                    trajectories_to_plot,
-                    means=(test_t.numpy(), observed_pred1.mean.numpy()),
-                    legend=legend,
-                    xlim=[0, 6.0],
-                    ylim=[-25, 30],
-                    xlabel="Time",
-                    ylabel="Y-position",
-                    image_name="y_time_GP.png")
-
-            trajectories_to_plot = [(trajectory.pos[0, :],
-                                     trajectory.pos[1, :])
-                                    for trajectory in trajectories]
-            plot_gp(observed_pred1,
-                    trajectories_to_plot,
-                    means=(observed_pred.mean.numpy(),
-                           observed_pred1.mean.numpy()),
-                    legend=legend,
-                    xlim=[-40, 15],
-                    ylim=[-25, 30],
-                    xlabel="X-position",
-                    ylabel="Y-position",
-                    plot_intervals=False)
-
-            legend = (
-                'Observed Demo 1',
-                'Observed Demo 2',
-                'Observed Demo 3',
-                'Observed Demo 4',
-                'Observed Demo 5',
-                'Observed Demo 6',
-                'Observed Demo 7',
-                'Predicted trajectory',
-            )
-            plot_3d_traj(trajectories,
-                         test_t,
-                         observed_preds=(observed_pred, observed_pred1),
-                         legend=legend)
-
 
 class TestMultitaskGP(unittest.TestCase):
     """Unit tests for multi-output Gaussian Processes."""
 
     def get_data(self):
         """Get the trajectories and training data."""
-        trajectories = load_trajectories()
+        lasa = Lasa(shape="heee")
 
         # Concatenating the demos
-        train_t, train_xy = concatenate_trajectories(trajectories)
+        train_t, train_xy = lasa.concatenated_trajectories()
 
         # Time
         train_t = torch.tensor(train_t).float()
         # Output
         train_xy = torch.tensor(train_xy).float()
 
-        return trajectories, train_t, train_xy
+        return train_t, train_xy
 
     def test_multi_output_exact_gp(self):
         """Unit test for exact inference on multi-output GP"""
         torch.manual_seed(7648)
 
-        _, train_t, train_xy = self.get_data()
+        train_t, train_xy = self.get_data()
 
         # subsample for efficiency
         train_t = train_t[:1000]
@@ -185,7 +113,7 @@ class TestMultitaskGP(unittest.TestCase):
 
     def test_multi_output_variational_gp(self):
         """Unit test for variational inference on multi-output GP"""
-        _, train_t, train_xy = self.get_data()
+        train_t, train_xy = self.get_data()
 
         torch.random.manual_seed(1107)
 
@@ -231,9 +159,3 @@ class TestMultitaskGP(unittest.TestCase):
                                                  16.468466201]).double(),
                                    atol=1e-6,
                                    rtol=1e-6)
-
-    def test_get_lasa_samples(self):
-        """Unit test for getting LASA samples on variational inference on multi-output GP"""
-        samples = get_lasa_samples("heee", 10)
-        assert len(samples) == 10
-        assert samples.shape == (10, 1000, 2)
