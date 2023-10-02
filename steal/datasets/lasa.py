@@ -1,30 +1,88 @@
 """Module for handling LASA dataset."""
 
 import numpy as np
-import pyLasaDataset as lasa
+import pyLasaDataset as _lasa
 import torch
 
 from steal.datasets import ContextMomentumDataset
 from steal.datasets.preprocess import preprocess_dataset
 
 
-def get_lasa_data(params, cspace_dim, data_name='Sshape'):
+class Lasa:
+
+    def __init__(self, shape="Sshape"):
+        """
+        Get the trajectory data for specified `shape`
+        in the LASA dataset.
+        """
+        if shape not in self.shapes():
+            raise RuntimeError(
+                f"Unknown shape {shape}. Please specify one of the following: {self.shapes()}"
+            )
+        self.data = getattr(_lasa.DataSet, shape, _lasa.DataSet.Sshape)
+        self.demos = self.data.demos
+        self.n_demos = len(self.demos)
+        self.dt = self.data.dt
+
+    def concatenated_trajectories(self):
+        """Return the trajectories concatenated into a single array"""
+        train_t = np.empty((0, ))
+        train_xy = np.empty((0, 2))
+        for _, trajectory in enumerate(self.data.demos):
+            train_t = np.hstack(
+                (train_t,
+                 trajectory.t[0])) if train_t.size else trajectory.t[0]
+            train_xy = np.vstack(
+                (train_xy,
+                 trajectory.pos.T)) if train_xy.size else trajectory.pos.T
+        return train_t, train_xy
+
+    @staticmethod
+    def shapes():
+        """Get the list of shapes in the LASA dataset."""
+        return [
+            "Angle",
+            "BendedLine",
+            "CShape",
+            "DoubleBendedLine",
+            "GShape",
+            "JShape",
+            "JShape_2",
+            "Khamesh",
+            "LShape",
+            "Leaf_1",
+            "Leaf_2",
+            "Line",
+            "Multi_Models_1",
+            "Multi_Models_2",
+            "Multi_Models_3",
+            "Multi_Models_4",
+            "NShape",
+            "PShape",
+            "RShape",
+            "Saeghe",
+            "Sharpc",
+            "Sine",
+            "Snake",
+            "Spoon",
+            "Sshape",
+            "Trapezoid",
+            "WShape",
+            "Worm",
+            "Zshape",
+            "heee",
+        ]
+
+
+def process_data(demos, dt, params, cspace_dim):
     """
-    Get the trajectory data for specified `data_name` 
+    Get the trajectory data for specified `data_name`
     in the LASA dataset.
     """
-    data = getattr(lasa.DataSet, data_name)
-    data = data.demos
+    n_demos = len(demos)
+    demo_traj_list = [demo.pos.T for demo in demos]
 
-    n_demos = len(data)
-    # n_dims = data[0].pos.shape[0]
-
-    dt = data[0].t[0, 1] - data[0].t[0, 0]
-    dt = np.round(dt * params.downsample_rate, 2)
-
-    demo_traj_list = [data[i].pos.T for i in range(n_demos)]
-
-    torch_traj_datasets = preprocess_dataset(
+    torch_traj_datasets, dt = preprocess_dataset(
         demo_traj_list,
         dt=dt,
         start_cut=params.start_cut,
@@ -35,6 +93,7 @@ def get_lasa_data(params, cspace_dim, data_name='Sshape'):
         goal_at_origin=True)
 
     # ---------------------------------------------------
+    # Get the position trajectories
     joint_traj_list = [
         traj_dataset.tensors[0].numpy() for traj_dataset in torch_traj_datasets
     ]

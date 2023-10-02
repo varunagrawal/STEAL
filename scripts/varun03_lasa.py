@@ -11,14 +11,15 @@ from matplotlib import animation
 from matplotlib import pyplot as plt
 from torch.utils.data import ConcatDataset, DataLoader
 
-from steal.datasets import get_dataset_list, get_lasa_data
+from steal.datasets import Lasa, get_dataset_list, process_data
 from steal.learning import (LatentTaskMapNetwork, get_flow_params,
                             get_leaf_goals, get_params, train_combined2,
                             train_independent2)
 from steal.rmpflow import RmpTreeNode
 from steal.robot import Robot, create_rmp_tree
-from steal.utils import (generate_trajectories, plot_robot_2D, plot_traj_2D,
-                         plot_traj_time)
+from steal.utils.data import generate_trajectories
+from steal.utils.plotting.rmpflow import (plot_robot_2D, plot_traj_2D,
+                                          plot_traj_time)
 
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
@@ -167,12 +168,15 @@ def plot(root: RmpTreeNode, robot, link_names, time_list, joint_traj_list, dt,
                                 link_order=link_order)
         return handle,
 
-    ani = animation.FuncAnimation(fig,
-                                  animate,
-                                  init_func=init,
-                                  interval=30,
-                                  blit=False)
+    anim = animation.FuncAnimation(fig,
+                                   animate,
+                                   init_func=init,
+                                   interval=30,
+                                   blit=False,
+                                   save_count=1500)
 
+    writergif = animation.PillowWriter(fps=30)
+    anim.save('lasa_animation.gif', writer=writergif)
     plt.show()
 
 
@@ -199,9 +203,9 @@ def main():
 
     link_names = ('link4', 'link8')
 
-    time_list, joint_traj_list, dt, n_demos = get_lasa_data(params,
-                                                            cspace_dim,
-                                                            data_name="Angle")
+    lasa = Lasa(shape="Sshape")
+    time_list, joint_traj_list, dt, n_demos = process_data(
+        lasa.demos, lasa.dt, params, cspace_dim)
 
     #TODO remove this duplicate
     leaf_goals, _ = get_leaf_goals(robot, link_names, joint_traj_list)
